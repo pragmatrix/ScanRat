@@ -1,11 +1,18 @@
 ﻿module Instant
 
+open InstantCombinators
+
 (* shortcuts *)
 
-let (|.) = InstantCombinators.pOr
-let (&.) = InstantCombinators.pAnd
-let (~~) = InstantCombinators.pStr
+let (|.) = pOr
+
+let (&.) = pAnd
+let (~~) = pStr
+
+let (>*) = pSelect
+
+let (!!) = pRefer
 
 let parse parser str = 
     let c = InstantCombinators.ParserContext.create(str)
-    InstantCombinators.parse parser c
+    memoParse parser c

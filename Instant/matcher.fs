@@ -3,8 +3,9 @@
 open System;
 open System.Collections.Generic;
 
-type Item = { startIndex : int; nextIndex: int}
-    with static member empty = { startIndex = 0; nextIndex = 0 }
+type Item = { startIndex : int; nextIndex: int; result : Object option}
+    
+type Key = Object
 
 type Error = { message: string; index: int}
 
@@ -15,8 +16,8 @@ type Result =
 type RuleTable = Dictionary<int, Item option>
 type ExpansionTable = Dictionary<int, RuleTable>
 
-type MemoTable = Dictionary<string, ExpansionTable>
-type Expansion = { name: string; num : int }
+type MemoTable = Dictionary<Key, ExpansionTable>
+type Expansion = { key: Key; num : int }
 
 type LRRecord = {
     mutable expansion: Expansion; 
@@ -27,7 +28,7 @@ type LRRecord = {
     }
 
 type RecordTable = Dictionary<int, LRRecord>
-type LRTable = Dictionary<string, RecordTable>
+type LRTable = Dictionary<Key, RecordTable>
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;
@@ -48,7 +49,7 @@ type Memo = {
 
 exception MatcherException of Error
 
-type Production = { name: string; f: Memo -> int -> Item seq -> unit}
+type Production = { key: Object; f: Memo -> int -> unit}
 
 type Dictionary<'k, 'v> with
     member this.TryFind key =
@@ -60,7 +61,7 @@ let rec getMatch input production =
     let memo = Memo.create();
 
     try
-        let matchedItem = memoCall memo production 0 Seq.empty
+        let matchedItem = memoCall memo production 0
         match matchedItem with
         | None -> ErrorResult { message= ""; index= 0}
         | Some item -> ItemResult item
@@ -72,8 +73,8 @@ let rec getMatch input production =
 
 
 
-and memoCall memo (production : Production) index (args : Item seq) : (Item option) =
-    let expansion = { name = makeRuleName production args; num = 0 }
+and memoCall memo (production : Production) index : (Item option) =
+    let expansion = { key = production.key; num = 0 }
 
     match tryGetMemo memo expansion index with
     | Some result -> 
@@ -94,7 +95,7 @@ and memoCall memo (production : Production) index (args : Item seq) : (Item opti
 
     // no lr information
 
-    let recordExpansion = { Expansion.name = expansion.name; num = 1 }
+    let recordExpansion = { expansion with num = 1 }
     let record = { LRRecord.lrDetected = false; expansions = 1; expansion = recordExpansion; nextIndex = -1; result = None }
     memoize memo recordExpansion index None
     startLRRecord memo expansion index record
@@ -102,12 +103,12 @@ and memoCall memo (production : Production) index (args : Item seq) : (Item opti
     memo.callStack.Push record
 
     let rec resolveItem() : Item option = 
-        production.f memo index args
+        production.f memo index
         let mutable result = memo.results.Pop()
         // do we need to keep trying the expansions?
         if record.lrDetected && result.IsSome && result.Value.nextIndex > record.nextIndex then
             record.expansions <- record.expansions + 1
-            record.expansion <- { Expansion.name = expansion.name; num = record.expansions }
+            record.expansion <- { expansion with num = record.expansions }
             record.nextIndex <- result.Value.nextIndex
             memoize memo record.expansion index result
             record.result <- result
@@ -125,19 +126,14 @@ and memoCall memo (production : Production) index (args : Item seq) : (Item opti
                 memoize memo expansion index result
 
             if result.IsNone then
-                addError memo index (fun () -> "expected " + expansion.name)
+                addError memo index (fun () -> "expected " + expansion.key.ToString())
 
             result
 
     resolveItem()
 
-and makeRuleName production (args : Item seq)= 
-    let argNames = Seq.map(fun arg -> arg.ToString())
-    production.name + " " + String.Join(", ", argNames)
-
-
 and tryGetMemo memo expansion index : (Item option option) =
-    match memo.table.TryFind expansion.name with
+    match memo.table.TryFind expansion.key with
     | None -> None
     | Some expansionDict ->
     match expansionDict.TryFind expansion.num with
@@ -148,7 +144,7 @@ and tryGetMemo memo expansion index : (Item option option) =
     | _ -> None
 
 and tryGetLRRecord memo expansion index =
-    match memo.recursions.TryFind expansion.name with
+    match memo.recursions.TryFind expansion.key with
     | None -> None
     | Some recordDict ->
     match recordDict.TryFind index with
@@ -157,11 +153,11 @@ and tryGetLRRecord memo expansion index =
 
 and memoize memo expansion index (item : Item option) =
     let expansionDict = 
-        match memo.table.TryFind expansion.name with
+        match memo.table.TryFind expansion.key with
         | Some expansionDict -> expansionDict
         | None -> 
             let dict = new ExpansionTable()
-            memo.table.Add(expansion.name, dict)
+            memo.table.Add(expansion.key, dict)
             dict
 
     let ruleDict = 
@@ -177,18 +173,18 @@ and memoize memo expansion index (item : Item option) =
 
 and startLRRecord memo expansion index record =
     let recordDict = 
-        match memo.recursions.TryFind expansion.name with
+        match memo.recursions.TryFind expansion.key with
         | Some recordDict -> recordDict
         | None -> 
             let rdict = new RecordTable()
-            memo.recursions.Add(expansion.name, rdict)
+            memo.recursions.Add(expansion.key, rdict)
             rdict
 
     recordDict.[index] <- record
     ()
 
 and forgetLRRecord memo expansion index =
-    match memo.recursions.TryFind expansion.name with
+    match memo.recursions.TryFind expansion.key with
     | Some recordDict -> recordDict.Remove index |> ignore
     | None -> 
         ()
