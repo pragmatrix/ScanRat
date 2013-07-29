@@ -12,15 +12,21 @@ open Instant
 type ParserTests() = class
 
     let orGrammar = ~~"Hello" |. ~~"World"
-    let andGrammar = ~~"Hello" &. ~~"World"
+    let andGrammar = ~~"Hello" +. ~~"World"
+
+    let helloOrWorldBuilder = 
+        ~~"Hello" 
+        |. 
+        ~~"World" +. ~~"Builder" +* fun (a,b) -> (a + b)
 
     let lrGrammar =
-        let g = ref None 
         let hello = ~~"Hello"
+
+        let g = ref None 
         g := Some(
-                hello
+                !!g +. hello +* fun (a, b) -> (a + b)
                 |.
-                !!g &. hello >* fun (a, b) -> (a + b))
+                hello)
         (!g).Value
 
     [<Test>]
@@ -50,10 +56,38 @@ type ParserTests() = class
         r.Value |> should equal ("Hello", "World")
 
     [<Test>]
+    member this.ParsePrecendence1() =
+        let p = parse helloOrWorldBuilder "Hello"
+        p.Value |> should equal "Hello"
+
+    [<Test>]
+    member this.ParsePrecendence2() =
+        let p = parse helloOrWorldBuilder "WorldBuilder"
+        p.Value |> should equal "WorldBuilder"
+
+    [<Test>]
+    member this.ParsePrecendence3() =
+        let p = parse helloOrWorldBuilder "HelloWorldBuilder"
+        p.Value |> should equal "Hello"
+
+    [<Test>]
+    member this.ParsePrecendence4() =
+        let p = parse helloOrWorldBuilder "HelloWorld"
+        p.Value |> should equal "Hello"
+
+    [<Test>]
     member this.ParseImmediateLR() =
         let r = parse lrGrammar "HelloHello"
         r.Value |> should equal "HelloHello"
 
+    [<Test>]
+    member this.ParseImmediateLR1() =
+        let r = parse lrGrammar "Hello"
+        r.Value |> should equal "Hello"
 
+    [<Test>]
+    member this.ParseImmediateLR3() =
+        let r = parse lrGrammar "HelloHelloHello"
+        r.Value |> should equal "HelloHelloHello"
 
 end

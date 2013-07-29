@@ -39,7 +39,6 @@
     <Compile Include="matcher.fs" />
     <Compile Include="combinators.fs" />
     <Compile Include="Instant.fs" />
-    <None Include="Language.md" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

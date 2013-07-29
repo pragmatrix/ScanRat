@@ -6,10 +6,10 @@ open InstantCombinators
 
 let (|.) = pOr
 
-let (&.) = pAnd
+let (+.) = pAnd
 let (~~) = pStr
 
-let (>*) = pSelect
+let (+*) = pSelect
 
 let (!!) = pRefer
 

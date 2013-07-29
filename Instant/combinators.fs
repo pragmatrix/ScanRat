@@ -20,7 +20,7 @@ type ParseResult<'resT> = { index: int; next: int; value: 'resT option }
         static member success (index, next, value) =
             { index = index; next = next; value = Some value }
 
-type Parser<'resT> = { parse: (ParserContext -> ParseResult<'resT>); id : Key option }
+type Parser<'resT> = { parse: (ParserContext -> ParseResult<'resT>); id : (unit -> Key) option }
 
 let mkParser f = { parse = f; id = None }
 let mkParserWithId f id = { parse = f; id = Some id }
@@ -29,12 +29,12 @@ let mkParserWithId f id = { parse = f; id = Some id }
 let private failParse p = { index = p.index; next = p.next; value = None }
  
 
-// todo: this should be simplified by parameterizing Item, and also by
+// todo: this should be simplified by parameterizing Item
 
 let memoParse (parser : Parser<'a>) c : ParseResult<'a>= 
     let memo = c.memo
     let production = {
-        key = if parser.id.IsSome then parser.id.Value else (upcast parser); 
+        key = if parser.id.IsSome then parser.id.Value() else (upcast parser); 
         f = fun memo index ->
             let res = parser.parse c
             match res.value with
@@ -95,4 +95,4 @@ let pSelect p f =
     |> mkParser
 
 let pRefer (p : Parser<'a> option ref) =
-    mkParserWithId (fun c -> (!p).Value.parse c) !p
+    mkParserWithId (fun c -> (!p).Value.parse c) (fun () -> upcast !p)
