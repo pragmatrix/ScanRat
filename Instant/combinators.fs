@@ -86,6 +86,18 @@ let pStr (str : string) : Parser<string> =
         else
             fail c.index  (c.index + extract.Length))
 
+let pOneOf (str : string) : Parser<char> =
+    mkParser (fun c ->
+        if c.index + 1 > c.text.Length then
+            fail c.index 1
+        else
+        let ch = c.text.[c.index]
+        if str.IndexOf(ch) <> -1 then
+            succeed c.index 1 ch
+        else
+            fail c.index 1
+        )
+
 // Convert a parse result.
 
 let pSelect p f =

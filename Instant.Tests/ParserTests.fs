@@ -1,18 +1,17 @@
 ﻿namespace Instant.Tests
 
-open InstantCombinators
-
 open NUnit.Framework
 open FsUnit
 
 open Instant
-
+open TestGrammars
 
 [<TestFixture>]
 type ParserTests() = class
 
     let orGrammar = ~~"Hello" |. ~~"World"
     let andGrammar = ~~"Hello" +. ~~"World"
+
 
     let helloOrWorldBuilder = 
         ~~"Hello" 
@@ -22,16 +21,16 @@ type ParserTests() = class
     let lrGrammar =
         let hello = ~~"Hello"
 
-        let g = ref None 
-        g := Some(
-                !!g +. hello +* fun (a, b) -> (a + b)
-                |.
-                hello)
+        let g = ref None
+        g := !!g +. hello +* fun (a, b) -> (a + b)
+             |.
+             hello
+             |> Some
+
         (!g).Value
 
     [<Test>]
     member this.parseOr1() =
-
         let r = parse orGrammar "Hello"
         r.Value |> should equal "Hello"
 
@@ -89,5 +88,10 @@ type ParserTests() = class
     member this.ParseImmediateLR3() =
         let r = parse lrGrammar "HelloHelloHello"
         r.Value |> should equal "HelloHelloHello"
+
+    [<Test>]
+    member this.ParseDigits1() =
+        let r = parse digits "123"
+        r.Value |> should equal 123
 
 end
