@@ -8,7 +8,7 @@ type Item(index: int, next: int) =
     member this.index = index
     member this.next = next
     abstract member hasValue : bool with get
-    
+   
 type Key = Object
 
 type Error = { message: string; index: int}
@@ -44,10 +44,11 @@ type Memo = {
             lastErrorPos = -1;
             }
 
+type IParseContext =
+    abstract member memo : Memo with get
+    abstract member index : int with get
 
 exception MatcherException of Error
-
-type Production = { key: Object; f: Memo -> int -> Item }
 
 type Dictionary<'k, 'v> with
     member this.TryFind key =
@@ -55,8 +56,10 @@ type Dictionary<'k, 'v> with
         | (true, v) -> Some v
         | (false, _) -> None
 
-let rec memoCall memo (production : Production) index : (Item option) =
-    let expansion = { key = production.key; num = 0 }
+let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'i :> Item) : (Item option) =
+    let memo = context.memo
+    let index = context.index
+    let expansion = { key = key; num = 0 }
 
     match tryGetMemo memo expansion index with
     | Some result -> result
@@ -86,7 +89,7 @@ let rec memoCall memo (production : Production) index : (Item option) =
     memo.callStack.Push record
 
     let rec resolveItem() : Item option = 
-        let pResult = production.f memo index
+        let pResult = production context :> Item
         let result = if pResult.hasValue then (Some pResult) else None
         // do we need to keep trying the expansions?
         

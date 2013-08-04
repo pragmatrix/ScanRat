@@ -2,12 +2,19 @@
 
 open InstantMatcher
 
-type ParserContext = { index: int; text: string; memo: Memo }
-    with 
-        static member create(text: string) : ParserContext =
-            { index = 0; text = text; memo = Memo.create() }
-        member this.at index =
-            { this with index = index };
+type ParserContext(index: int, text: string, memo: Memo) = 
+    interface IParseContext
+        with
+            member this.index with get() = index
+            member this.memo with get() = memo
+
+    member this.index = index
+    member this.text = text
+    member this.at index =
+        ParserContext(index, this.text, (this :> IParseContext).memo)
+    
+    static member create(text: string) : ParserContext =
+        ParserContext(0, text, Memo.create())
 
 [<Sealed>]
 type ParseResult<'v>(index: int, next: int, value: 'v option) =
@@ -26,6 +33,7 @@ type ParseResult<'v>(index: int, next: int, value: 'v option) =
         ParseResult(index, index, Some value)
 
 type Parser<'resT> = { parse: (ParserContext -> ParseResult<'resT>); id : (unit -> Key) option }
+    with member this.key with get() = if this.id.IsNone then this :> Key else this.id.Value()
 
 let mkParser f = { parse = f; id = None }
 let mkParserWithId f id = { parse = f; id = Some id }
@@ -34,13 +42,8 @@ let mkParserWithId f id = { parse = f; id = Some id }
 let private failParse (p:Item) = ParseResult(p.index, p.next, None)
  
 
-let memoParse (parser : Parser<'a>) c : ParseResult<'a>= 
-    let memo = c.memo
-    let production = {
-        key = if parser.id.IsSome then parser.id.Value() else (upcast parser); 
-        f = fun memo index -> upcast (parser.parse c)
-        }
-    let res = memoCall memo production c.index
+let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>= 
+    let res = memoCall c parser.key parser.parse
 
     match res with
     | None -> ParseResult(c.index, c.index, None)
@@ -72,7 +75,7 @@ let private succeed index length value = ParseResult(index, index + length, Some
 let private fail index length = ParseResult(index, index + length, None)
 
 let pStr (str : string) : Parser<string> = 
-    fun c ->
+    fun (c : ParserContext) ->
         if c.index + str.Length > c.text.Length then
             fail c.index (c.text.Length - c.index)
         else
@@ -84,7 +87,7 @@ let pStr (str : string) : Parser<string> =
     |> mkParser
 
 let pOneOf (str : string) : Parser<char> =
-    fun c ->
+    fun (c : ParserContext) ->
         if c.index + 1 > c.text.Length then
             fail c.index 1
         else
