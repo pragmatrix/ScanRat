@@ -3,15 +3,15 @@
 open System;
 open System.Collections.Generic;
 
-type Item = { startIndex : int; nextIndex: int; result : Object option}
+[<AbstractClass>]
+type Item(index: int, next: int) = 
+    member this.index = index
+    member this.next = next
+    abstract member hasValue : bool with get
     
 type Key = Object
 
 type Error = { message: string; index: int}
-
-type Result = 
-    | ItemResult of Item 
-    | ErrorResult of Error
 
 type RuleTable = Dictionary<int, Item option>
 type ExpansionTable = Dictionary<int, RuleTable>
@@ -47,7 +47,7 @@ type Memo = {
 
 exception MatcherException of Error
 
-type Production = { key: Object; f: Memo -> int -> Item option }
+type Production = { key: Object; f: Memo -> int -> Item }
 
 type Dictionary<'k, 'v> with
     member this.TryFind key =
@@ -83,12 +83,14 @@ let rec memoCall memo (production : Production) index : (Item option) =
     memo.callStack.Push record
 
     let rec resolveItem() : Item option = 
-        let mutable result = production.f memo index
+        let pResult = production.f memo index
+        let mutable result = if pResult.hasValue then (Some pResult) else None
         // do we need to keep trying the expansions?
-        if record.lrDetected && result.IsSome && result.Value.nextIndex > record.nextIndex then
+        
+        if record.lrDetected && result.IsSome && result.Value.next > record.nextIndex then
             record.expansions <- record.expansions + 1
             record.expansion <- { expansion with num = record.expansions }
-            record.nextIndex <- result.Value.nextIndex
+            record.nextIndex <- result.Value.next
             memoize memo record.expansion index result
             record.result <- result
             resolveItem()
@@ -97,9 +99,9 @@ let rec memoCall memo (production : Production) index : (Item option) =
             if record.lrDetected then
                 result <- record.result
             forgetLRRecord memo expansion index
-            // if there are no LR-processing rules at or above us in the stack, memoize
             memo.callStack.Pop() |> ignore
 
+            // if there are no LR-processing rules at or above us in the stack, memoize
             if not (Seq.exists (fun (r:LRRecord) -> r.lrDetected) memo.callStack) then
                 memoize memo expansion index result
 
