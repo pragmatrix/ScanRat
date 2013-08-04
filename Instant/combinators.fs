@@ -34,8 +34,6 @@ let mkParserWithId f id = { parse = f; id = Some id }
 let private failParse (p:Item) = ParseResult(p.index, p.next, None)
  
 
-// todo: this should be simplified by parameterizing Item
-
 let memoParse (parser : Parser<'a>) c : ParseResult<'a>= 
     let memo = c.memo
     let production = {
@@ -74,27 +72,28 @@ let private succeed index length value = ParseResult(index, index + length, Some
 let private fail index length = ParseResult(index, index + length, None)
 
 let pStr (str : string) : Parser<string> = 
-    mkParser (fun c ->
+    fun c ->
         if c.index + str.Length > c.text.Length then
             fail c.index (c.text.Length - c.index)
         else
-        let extract = c.text.Substring(c.index, str.Length)
-        if str = extract then
-            succeed c.index str.Length str
-        else
-            fail c.index  (c.index + extract.Length))
+            let extract = c.text.Substring(c.index, str.Length)
+            if str = extract then
+                succeed c.index str.Length str
+            else
+                fail c.index  (c.index + extract.Length)
+    |> mkParser
 
 let pOneOf (str : string) : Parser<char> =
-    mkParser (fun c ->
+    fun c ->
         if c.index + 1 > c.text.Length then
             fail c.index 1
         else
-        let ch = c.text.[c.index]
-        if str.IndexOf(ch) <> -1 then
-            succeed c.index 1 ch
-        else
-            fail c.index 1
-        )
+            let ch = c.text.[c.index]
+            if str.IndexOf(ch) <> -1 then
+                succeed c.index 1 ch
+            else
+                fail c.index 1
+    |> mkParser
 
 // Convert a parse result.
 
