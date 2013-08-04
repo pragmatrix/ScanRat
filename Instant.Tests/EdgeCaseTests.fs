@@ -17,8 +17,8 @@ type EdgeCaseTests() = class
         let expr = ref None
         let num = oneOf "0123456789"
 
-        expr := !!expr +. ~~"-" +. !!expr +* fun ((a, _), c) -> "(" + a + "-" + c + ")"
-            |. num +* fun c -> string(c)
+        expr := !!expr + ~~"-" + !!expr --> fun ((a, _), c) -> "(" + a + "-" + c + ")"
+            |= num --> fun c -> string(c)
             |> Some
 
         (!expr).Value

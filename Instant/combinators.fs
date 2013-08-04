@@ -33,7 +33,10 @@ type ParseResult<'v>(index: int, next: int, value: 'v option) =
         ParseResult(index, index, Some value)
 
 type Parser<'resT> = { parse: (ParserContext -> ParseResult<'resT>); id : (unit -> Key) option }
-    with member this.key with get() = if this.id.IsNone then this :> Key else this.id.Value()
+    with
+        member this.key with get() = if this.id.IsNone then this :> Key else this.id.Value()
+
+        
 
 let mkParser f = { parse = f; id = None }
 let mkParserWithId f id = { parse = f; id = Some id }
@@ -60,6 +63,8 @@ let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
         | r2 -> 
         ParseResult(r1.index, r2.next, Some (r1.Value, r2.Value))
     |> mkParser
+
+
 
 let pOr (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
     fun c ->
@@ -108,3 +113,16 @@ let pSelect p f =
 
 let pRefer (p : Parser<'a> option ref) =
     mkParserWithId (fun c -> (!p).Value.parse c) (fun () -> upcast !p)
+
+
+(* Define some fancy operators!!! *)
+
+type Parser<'resT> 
+    with
+        static member (|=) (l, r) = pOr l r
+        static member (-->) (l, f) = pSelect l f 
+
+        static member (+) (l, r) = pAnd l r
+        static member (.+) (l, r) = pAnd l r --> fun (a, b) -> a
+        static member (+.) (l, r) = pAnd l r --> fun (a, b) -> b
+      

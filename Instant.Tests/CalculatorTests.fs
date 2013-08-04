@@ -27,10 +27,10 @@ type ParserTests() = class
     let simpleCalc input = 
 
         let exp = ref None
-        exp := !!exp +. ~~"+" +. !!exp +* fun ((a, _), c) -> (Add (a, c))
-            |. !!exp +. ~~"-" +. !!exp +* fun ((a, _), c) -> (Subtract (a, c))
-            |. digits +* fun n -> Number n
-            |. ~~"(" +. !!exp +. ~~")" +* fun ((_, e), _) -> e
+        exp := !!exp .+ ~~"+" + !!exp --> fun (a, b) -> Add (a, b)
+            |= !!exp .+ ~~"-" + !!exp --> fun (a, b) -> Subtract (a, b)
+            |= digits --> fun n -> Number n
+            |= ~~"(" + !!exp + ~~")" --> fun ((_, e), _) -> e
             |> Some
 
         let grammar = (!exp).Value
@@ -43,17 +43,17 @@ type ParserTests() = class
         let multiplicative = ref None
         let additive = ref None
         
-        let number = digits +* fun d -> Number d
+        let number = digits --> fun d -> Number d
 
-        let add = !!additive +. ~~"+" +. !!multiplicative +* fun ((a, _), c) -> Add(a, c)
-        let sub = !!additive +. ~~"-" +. !!multiplicative +* fun ((a, _), c) -> Subtract(a, c)
+        let add = !!additive + ~~"+" + !!multiplicative --> fun ((a, _), c) -> Add(a, c)
+        let sub = !!additive + ~~"-" + !!multiplicative --> fun ((a, _), c) -> Subtract(a, c)
 
-        let multiply = !!multiplicative +. ~~"*" +. number +* fun ((a, _), c) -> Multiply(a, c)
-        let divide = !!multiplicative +. ~~"/" +. number +* fun ((a, _), c) -> Divide(a, c)
+        let multiply = !!multiplicative + ~~"*" + number --> fun ((a, _), c) -> Multiply(a, c)
+        let divide = !!multiplicative + ~~"/" + number --> fun ((a, _), c) -> Divide(a, c)
 
 
-        additive := Some (add |. sub |. !!multiplicative)
-        multiplicative := Some (multiply |. divide |. number)
+        additive := Some (add |= sub |= !!multiplicative)
+        multiplicative := Some (multiply |= divide |= number)
         expression := Some (!additive).Value
 
         let grammar = (!expression).Value

@@ -6,25 +6,25 @@ open FsUnit
 open Instant
 open TestGrammars
 
+
 [<TestFixture>]
 type PrimitiveTests() = class
 
-    let orGrammar = ~~"Hello" |. ~~"World"
-    let andGrammar = ~~"Hello" +. ~~"World"
+    let orGrammar = ~~"Hello" |= ~~"World"
+    let andGrammar = ~~"Hello" + ~~"World"
 
 
     let helloOrWorldBuilder = 
         ~~"Hello" 
-        |. 
-        ~~"World" +. ~~"Builder" +* fun (a,b) -> (a + b)
+        |=
+        ~~"World" + ~~"Builder" --> fun (a, b) -> (a + b)
 
     let lrGrammar =
         let hello = ~~"Hello"
 
         let g = ref None
-        g := !!g +. hello +* fun (a, b) -> (a + b)
-             |.
-             hello
+        g := !!g + hello --> fun (a, b) -> (a + b)
+             |= hello
              |> Some
 
         (!g).Value

@@ -4,17 +4,13 @@ open InstantCombinators
 
 (* shortcuts *)
 
-let (|.) = pOr
+let inline (~~) (str:string) = pStr str
 
-let (+.) = pAnd
-let (~~) = pStr
-
-let (+*) = pSelect
-
-let (!!) = pRefer
+let inline (!!) (p:Parser<'a> option ref) = pRefer p
 
 let oneOf = pOneOf
 
 let parse parser str = 
     let c = InstantCombinators.ParserContext.create(str)
     memoParse parser c
+
