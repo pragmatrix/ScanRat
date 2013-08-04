@@ -50,8 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestGrammars.fs" />
-    <Compile Include="ParserTests.fs" />
+    <Compile Include="PrimitiveTests.fs" />
     <Compile Include="CalculatorTests.fs" />
+    <Compile Include="EdgeCaseTests.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
   </ItemGroup>
