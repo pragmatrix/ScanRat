@@ -38,8 +38,8 @@ let memoParse (parser : Parser<'a>) c : ParseResult<'a>=
         f = fun memo index ->
             let res = parser.parse c
             match res.value with
-            | None -> memo.results.Push(None);
-            | Some value -> memo.results.Push(Some { startIndex = res.index; nextIndex = res.next; result = Some (value :> System.Object) })
+            | None -> None
+            | Some value -> Some { startIndex = res.index; nextIndex = res.next; result = Some (value :> System.Object) }
              }
     let res = memoCall memo production c.index
 

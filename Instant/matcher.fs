@@ -32,7 +32,6 @@ type LRTable = Dictionary<Key, RecordTable>
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;
-    results: Stack<Item option> 
     callStack: Stack<LRRecord>;
     errorMsgs: List<unit -> string>;
     mutable lastErrorPos: int;
@@ -40,7 +39,6 @@ type Memo = {
     with static member create() = {
             table = new MemoTable(); 
             recursions = new LRTable(); 
-            results = new Stack<Item option>();
             callStack = new Stack<LRRecord>(); 
             errorMsgs = new List<unit -> string>();
             lastErrorPos = -1;
@@ -49,7 +47,7 @@ type Memo = {
 
 exception MatcherException of Error
 
-type Production = { key: Object; f: Memo -> int -> unit}
+type Production = { key: Object; f: Memo -> int -> Item option }
 
 type Dictionary<'k, 'v> with
     member this.TryFind key =
@@ -78,7 +76,6 @@ and memoCall memo (production : Production) index : (Item option) =
 
     match tryGetMemo memo expansion index with
     | Some result -> 
-        memo.results.Push(result)
         result
     | _ ->
 
@@ -89,7 +86,6 @@ and memoCall memo (production : Production) index : (Item option) =
         | None ->
             raise (MatcherException({ index = index; message = "Problem with expansion" }))
         | Some result ->
-            memo.results.Push(result)
             result
     | None ->
 
@@ -103,8 +99,7 @@ and memoCall memo (production : Production) index : (Item option) =
     memo.callStack.Push record
 
     let rec resolveItem() : Item option = 
-        production.f memo index
-        let mutable result = memo.results.Pop()
+        let mutable result = production.f memo index
         // do we need to keep trying the expansions?
         if record.lrDetected && result.IsSome && result.Value.nextIndex > record.nextIndex then
             record.expansions <- record.expansions + 1
@@ -118,7 +113,6 @@ and memoCall memo (production : Production) index : (Item option) =
             if record.lrDetected then
                 result <- record.result
             forgetLRRecord memo expansion index
-            memo.results.Push result
             // if there are no LR-processing rules at or above us in the stack, memoize
             memo.callStack.Pop() |> ignore
 
