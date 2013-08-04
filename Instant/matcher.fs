@@ -59,32 +59,35 @@ let rec memoCall memo (production : Production) index : (Item option) =
     let expansion = { key = production.key; num = 0 }
 
     match tryGetMemo memo expansion index with
-    | Some result -> 
-        result
+    | Some result -> result
     | _ ->
 
     match tryGetLRRecord memo expansion index with
     | Some record ->
         record.lrDetected <- true
         match tryGetMemo memo record.expansion index with
-        | None ->
-            raise (MatcherException({ index = index; message = "Problem with expansion" }))
-        | Some result ->
-            result
+        | None -> raise (MatcherException({ index = index; message = "Problem with expansion" }))
+        | Some result -> result
     | None ->
 
     // no lr information
 
     let recordExpansion = { expansion with num = 1 }
-    let record = { LRRecord.lrDetected = false; expansions = 1; expansion = recordExpansion; nextIndex = -1; result = None }
     memoize memo recordExpansion index None
+
+    let record = { 
+        LRRecord.lrDetected = false; 
+        expansions = 1; 
+        expansion = recordExpansion; 
+        nextIndex = -1; 
+        result = None }
+
     startLRRecord memo expansion index record
-    
     memo.callStack.Push record
 
     let rec resolveItem() : Item option = 
         let pResult = production.f memo index
-        let mutable result = if pResult.hasValue then (Some pResult) else None
+        let result = if pResult.hasValue then (Some pResult) else None
         // do we need to keep trying the expansions?
         
         if record.lrDetected && result.IsSome && result.Value.next > record.nextIndex then
@@ -96,21 +99,22 @@ let rec memoCall memo (production : Production) index : (Item option) =
             resolveItem()
         else
             // we are done trying to expand
-            if record.lrDetected then
-                result <- record.result
-            forgetLRRecord memo expansion index
-            memo.callStack.Pop() |> ignore
+            if record.lrDetected then record.result else result
 
-            // if there are no LR-processing rules at or above us in the stack, memoize
-            if not (Seq.exists (fun (r:LRRecord) -> r.lrDetected) memo.callStack) then
-                memoize memo expansion index result
+    let result = resolveItem()
 
-            if result.IsNone then
-                addError memo index (fun () -> "expected " + expansion.key.ToString())
+    memo.callStack.Pop() |> ignore
+    forgetLRRecord memo expansion index
 
-            result
+    // if there are no LR-processing rules at or above us in the stack, memoize
+    if not (Seq.exists (fun (r:LRRecord) -> r.lrDetected) memo.callStack) then
+        memoize memo expansion index result
 
-    resolveItem()
+    if result.IsNone then
+        addError memo index (fun () -> "expected " + expansion.key.ToString())
+
+    result
+
 
 and tryGetMemo memo expansion index : (Item option option) =
     match memo.table.TryFind expansion.key with
@@ -118,18 +122,12 @@ and tryGetMemo memo expansion index : (Item option option) =
     | Some expansionDict ->
     match expansionDict.TryFind expansion.num with
     | None -> None
-    | Some ruleDict ->
-    match ruleDict.TryFind index with
-    | Some item -> Some item
-    | _ -> None
+    | Some ruleDict -> ruleDict.TryFind index
 
 and tryGetLRRecord memo expansion index =
     match memo.recursions.TryFind expansion.key with
     | None -> None
-    | Some recordDict ->
-    match recordDict.TryFind index with
-    | None -> None
-    | Some lrRecord -> Some lrRecord
+    | Some recordDict -> recordDict.TryFind index
 
 and memoize memo expansion index (item : Item option) =
     let expansionDict = 
@@ -149,7 +147,6 @@ and memoize memo expansion index (item : Item option) =
             ruleDict
 
     ruleDict.[index] <- item
-    ()
 
 and startLRRecord memo expansion index record =
     let recordDict = 
@@ -161,13 +158,11 @@ and startLRRecord memo expansion index record =
             rdict
 
     recordDict.[index] <- record
-    ()
 
 and forgetLRRecord memo expansion index =
     match memo.recursions.TryFind expansion.key with
     | Some recordDict -> recordDict.Remove index |> ignore
-    | None -> 
-        ()
+    | None -> ()
       
 and addError memo pos messageFunc =
     if pos > memo.lastErrorPos then
