@@ -55,23 +55,7 @@ type Dictionary<'k, 'v> with
         | (true, v) -> Some v
         | (false, _) -> None
 
-let rec getMatch input production =
-    let memo = Memo.create();
-
-    try
-        let matchedItem = memoCall memo production 0
-        match matchedItem with
-        | None -> ErrorResult { message= ""; index= 0}
-        | Some item -> ItemResult item
-    with
-    | MatcherException(e) ->
-        ErrorResult e
-    | e ->
-        ErrorResult { message = e.Message; index= 0 }
-
-
-
-and memoCall memo (production : Production) index : (Item option) =
+let rec memoCall memo (production : Production) index : (Item option) =
     let expansion = { key = production.key; num = 0 }
 
     match tryGetMemo memo expansion index with
