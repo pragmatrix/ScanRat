@@ -15,4 +15,4 @@ let parse parser str =
     let c = InstantCombinators.ParserContext.create(str)
     memoParse parser c
 
-let parseSeq = ParseSequenceBuilder()
+let parser = ParseSequenceBuilder()

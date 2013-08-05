@@ -7,8 +7,7 @@ open Instant
 
 [<TestFixture>]
 type BuilderTests() =
-    let helloWorldGrammar = 
-        parseSeq {
+    let helloWorldGrammar = parser {
                 let! a = ~~"Hello"
                 let! b = ~~"World"
                 // Some ... just to change the return type
