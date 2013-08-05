@@ -1,6 +1,7 @@
 ﻿module Instant
 
 open InstantCombinators
+open System.Collections.Generic
 
 (* shortcuts *)
 
@@ -14,3 +15,4 @@ let parse parser str =
     let c = InstantCombinators.ParserContext.create(str)
     memoParse parser c
 
+let parseSeq = ParseSequenceBuilder()

@@ -25,7 +25,7 @@ type ParseResult<'v>(index: int, next: int, value: 'v option) =
     member this.failed = this.value.IsNone
     member this.succeeded = not this.failed
     member this.Value = this.value.Value
-    member this.fail() = 
+    member this.fail() =
         ParseResult(this.index, this.next, None)
     member this.select f = 
         ParseResult(this.index, this.next, if this.value.IsNone then None else Some (f this.Value))
@@ -35,8 +35,6 @@ type ParseResult<'v>(index: int, next: int, value: 'v option) =
 type Parser<'resT> = { parse: (ParserContext -> ParseResult<'resT>); id : (unit -> Key) option }
     with
         member this.key with get() = if this.id.IsNone then this :> Key else this.id.Value()
-
-        
 
 let mkParser f = { parse = f; id = None }
 let mkParserWithId f id = { parse = f; id = Some id }
@@ -59,12 +57,11 @@ let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
         | r1 when r1.failed -> r1.fail()
         | r1 ->
         match c.at r1.next |> memoParse p2 with
+        // we do completely fail here, this is probably wrong
         | r2 when r2.failed -> r2.fail()
         | r2 -> 
         ParseResult(r1.index, r2.next, Some (r1.Value, r2.Value))
     |> mkParser
-
-
 
 let pOr (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
     fun c ->
@@ -125,4 +122,27 @@ type Parser<'resT>
         static member (+) (l, r) = pAnd l r
         static member (.+) (l, r) = pAnd l r --> fun (a, b) -> a
         static member (+.) (l, r) = pAnd l r --> fun (a, b) -> b
-      
+
+(* and ultimately, the Builder *)
+
+type ParseSequenceBuilder() = 
+    member this.Bind(p: Parser<'a>, push : 'a -> Parser<'b>) : Parser<'b> =
+        fun c -> 
+            match memoParse p c with
+            | r1 when r1.failed -> r1.fail()
+            | r1 -> 
+            let cnext = c.at r1.next
+            let v = r1.Value
+            let r2 = memoParse (push v) cnext
+            // correct "Return" provided results
+            let next = if r2.next = 0 then r1.next else r2.next
+            let length = next - r1.index
+            match r2 with
+            | r2 when r2.failed -> fail r1.index length
+            | r2 -> succeed r1.index length r2.Value
+        |> mkParser
+
+    member this.Return(v) : Parser<'r> = 
+        fun c -> succeed 0 0 v
+        |> mkParser
+        

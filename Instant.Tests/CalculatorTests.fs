@@ -1,4 +1,4 @@
-﻿namespace Instant.Tests.CalculatorTests
+﻿namespace Instant.Tests
 
 open NUnit.Framework
 open FsUnit
