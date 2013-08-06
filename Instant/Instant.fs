@@ -7,8 +7,6 @@ open System.Collections.Generic
 
 let inline (~~) (str:string) = pStr str
 
-let inline (!!) (p:Parser<'a> option ref) = pRefer p
-
 let oneOf = pOneOf
 
 let parse parser str = 
@@ -16,3 +14,7 @@ let parse parser str =
     memoParse parser c
 
 let parser = ParseSequenceBuilder()
+
+let private empty = fun () -> fun c -> ParseResult<'a>(0, 0, None)
+
+let production<'a>() = Parser<'a>(empty)

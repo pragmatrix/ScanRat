@@ -2,6 +2,7 @@
 
 open InstantMatcher
 
+[<Sealed>]
 type ParserContext(index: int, text: string, memo: Memo) = 
     interface IParseContext
         with
@@ -32,12 +33,22 @@ type ParseResult<'v>(index: int, next: int, value: 'v option) =
     static member success (index, next, value) =
         ParseResult(index, index, Some value)
 
-type Parser<'resT> = { parse: (ParserContext -> ParseResult<'resT>); id : (unit -> Key) option }
-    with
-        member this.key with get() = if this.id.IsNone then this :> Key else this.id.Value()
+type ParseFunc<'r> = ParserContext -> ParseResult<'r>
 
-let mkParser f = { parse = f; id = None }
-let mkParserWithId f id = { parse = f; id = Some id }
+[<Sealed>]
+type Parser<'r>(resolver: unit -> ParseFunc<'r>) = 
+    
+    let mutable _mutableResolver = resolver;
+    let _resolved = lazy (_mutableResolver());
+
+    member this.assign(p: Parser<'r>) : unit =
+        _mutableResolver <- fun () -> p.parse
+
+    member this.parse with get() : ParseFunc<'r> = _resolved.Force()
+    member this.key with get() = _resolved.Force() :> Key
+    member this.rule with set(p: Parser<'r>) = this.assign(p)
+
+let mkParser f = Parser(fun () -> f)
 
 // we must not use with here, because the result may be a different type
 let private failParse (p:Item) = ParseResult(p.index, p.next, None)
@@ -108,20 +119,17 @@ let pSelect p f =
         r.select f
     |> mkParser
 
-let pRefer (p : Parser<'a> option ref) =
-    mkParserWithId (fun c -> (!p).Value.parse c) (fun () -> upcast !p)
-
-
 (* Define some fancy operators!!! *)
 
 type Parser<'resT> 
     with
-        static member (|=) (l, r) = pOr l r
         static member (-->) (l, f) = pSelect l f 
 
         static member (+) (l, r) = pAnd l r
-        static member (.+) (l, r) = pAnd l r --> fun (a, b) -> a
-        static member (+.) (l, r) = pAnd l r --> fun (a, b) -> b
+        static member (.+) (l, r) = pAnd l r --> fst
+        static member (+.) (l, r) = pAnd l r --> snd
+
+        static member (|-) (l, r) = pOr l r
 
 (* and ultimately, the Builder *)
 

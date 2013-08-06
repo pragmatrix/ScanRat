@@ -10,24 +10,22 @@ open TestGrammars
 [<TestFixture>]
 type PrimitiveTests() = class
 
-    let orGrammar = ~~"Hello" |= ~~"World"
+    let orGrammar = ~~"Hello" |- ~~"World"
     let andGrammar = ~~"Hello" + ~~"World"
 
 
-    let helloOrWorldBuilder = 
-        ~~"Hello" 
-        |=
-        ~~"World" + ~~"Builder" --> fun (a, b) -> (a + b)
+    let helloOrWorldBuilder
+        =  ~~"Hello" 
+        |- ~~"World" + ~~"Builder" --> fun (a, b) -> (a + b)
 
     let lrGrammar =
         let hello = ~~"Hello"
 
-        let g = ref None
-        g := !!g + hello --> fun (a, b) -> (a + b)
-             |= hello
-             |> Some
-
-        (!g).Value
+        let g = production()
+        g.rule 
+            <- g + hello --> fun (a, b) -> (a + b)
+            |- hello
+        g
 
     [<Test>]
     member this.parseOr1() =

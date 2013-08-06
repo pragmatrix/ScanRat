@@ -14,14 +14,14 @@ type EdgeCaseTests() = class
 
     
     let tratt51Grammar = 
-        let expr = ref None
         let num = oneOf "0123456789"
 
-        expr := !!expr + ~~"-" + !!expr --> fun ((a, _), c) -> "(" + a + "-" + c + ")"
-            |= num --> fun c -> string(c)
-            |> Some
-
-        (!expr).Value
+        let expr = production()
+        expr.rule 
+            <- expr + ~~"-" + expr --> fun ((a, _), c) -> "(" + a + "-" + c + ")"
+            |- num --> fun c -> string(c)
+            
+        expr
 
 
     // this is actually wrong, in this special case, the production above is handled right-associative

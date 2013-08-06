@@ -26,38 +26,35 @@ type ParserTests() = class
 
     let simpleCalc input = 
 
-        let exp = ref None
-        exp := !!exp .+ ~~"+" + !!exp --> fun (a, b) -> Add (a, b)
-            |= !!exp .+ ~~"-" + !!exp --> fun (a, b) -> Subtract (a, b)
-            |= digits --> fun n -> Number n
-            |= ~~"(" + !!exp + ~~")" --> fun ((_, e), _) -> e
-            |> Some
-
-        let grammar = (!exp).Value
-        (parse grammar input).Value |> compute
+        let exp = production()
+        exp.rule 
+            <- exp .+ ~~"+" + exp --> fun (a, b) -> Add (a, b) 
+            |- exp .+ ~~"-" + exp --> fun (a, b) -> Subtract (a, b)
+            |- digits --> fun n -> Number n
+            |- ~~"(" + exp + ~~")" --> fun ((_, e), _) -> e
+            
+        (parse exp input).Value |> compute
 
     // from the IronMeta Project
 
     let precedenceCalc input = 
-        let expression = ref None
-        let multiplicative = ref None
-        let additive = ref None
+        let expression = production()
+        let multiplicative = production()
+        let additive = production()
         
         let number = digits --> fun d -> Number d
 
-        let add = !!additive + ~~"+" + !!multiplicative --> fun ((a, _), c) -> Add(a, c)
-        let sub = !!additive + ~~"-" + !!multiplicative --> fun ((a, _), c) -> Subtract(a, c)
+        let add = additive + ~~"+" + multiplicative --> fun ((a, _), c) -> Add(a, c)
+        let sub = additive + ~~"-" + multiplicative --> fun ((a, _), c) -> Subtract(a, c)
 
-        let multiply = !!multiplicative + ~~"*" + number --> fun ((a, _), c) -> Multiply(a, c)
-        let divide = !!multiplicative + ~~"/" + number --> fun ((a, _), c) -> Divide(a, c)
+        let multiply = multiplicative + ~~"*" + number --> fun ((a, _), c) -> Multiply(a, c)
+        let divide = multiplicative + ~~"/" + number --> fun ((a, _), c) -> Divide(a, c)
 
+        additive.rule <- add |- sub |- multiplicative
+        multiplicative.rule <- multiply |- divide |- number
+        expression.rule <- additive
 
-        additive := Some (add |= sub |= !!multiplicative)
-        multiplicative := Some (multiply |= divide |= number)
-        expression := Some (!additive).Value
-
-        let grammar = (!expression).Value
-        (parse grammar input).Value |> compute
+        (parse expression input).Value |> compute
 
 
     [<Test>]
