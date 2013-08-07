@@ -3,17 +3,34 @@
 open System;
 open System.Collections.Generic;
 
-[<AbstractClass>]
-type Item(index: int, next: int) = 
-    member this.index = index
-    member this.next = next
-    abstract member hasValue : bool with get
+type ParseSuccess<'v> = { value: 'v; index: int; next: int }
+type ParseFailure = { index: int }
+
+type IItem =
+    abstract member next : int;
+    abstract member isSuccess : bool;
+
+type ParseResult<'v> =
+    | Success of ParseSuccess<'v>
+    | Failure of ParseFailure
+
+    interface IItem with
+        member this.next 
+            with get() =
+                match this with
+                | Success ps -> ps.next
+                | _ -> failwith "no next"
+        member this.isSuccess 
+            with get() =
+                match this with
+                | Success _ -> true
+                | _ -> false
    
 type Key = Object
 
 type Error = { message: string; index: int}
 
-type RuleTable = Dictionary<int, Item option>
+type RuleTable = Dictionary<int, IItem option>
 type ExpansionTable = Dictionary<int, RuleTable>
 
 type MemoTable = Dictionary<Key, ExpansionTable>
@@ -24,7 +41,7 @@ type LRRecord = {
     mutable expansions: int; 
     mutable lrDetected: bool; 
     mutable nextIndex: int; 
-    mutable result: Item option
+    mutable result: IItem option
     }
 
 type RecordTable = Dictionary<int, LRRecord>
@@ -56,7 +73,7 @@ type Dictionary<'k, 'v> with
         | (true, v) -> Some v
         | (false, _) -> None
 
-let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'i :> Item) : (Item option) =
+let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'r :> IItem) : (IItem option) =
     let memo = context.memo
     let index = context.index
     let expansion = { key = key; num = 0 }
@@ -88,9 +105,9 @@ let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'i
     startLRRecord memo expansion index record
     memo.callStack.Push record
 
-    let rec resolveItem() : Item option = 
-        let pResult = production context :> Item
-        let result = if pResult.hasValue then (Some pResult) else None
+    let rec resolveItem() : IItem option = 
+        let pResult = production context :> IItem
+        let result = if pResult.isSuccess then (Some pResult) else None
         // do we need to keep trying the expansions?
         
         if record.lrDetected && result.IsSome && result.Value.next > record.nextIndex then
@@ -119,7 +136,7 @@ let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'i
     result
 
 
-and tryGetMemo memo expansion index : (Item option option) =
+and tryGetMemo memo expansion index : (IItem option option) =
     match memo.table.TryFind expansion.key with
     | None -> None
     | Some expansionDict ->
@@ -132,7 +149,7 @@ and tryGetLRRecord memo expansion index =
     | None -> None
     | Some recordDict -> recordDict.TryFind index
 
-and memoize memo expansion index (item : Item option) =
+and memoize memo expansion index (item : IItem option) =
     let expansionDict = 
         match memo.table.TryFind expansion.key with
         | Some expansionDict -> expansionDict

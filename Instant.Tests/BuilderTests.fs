@@ -17,18 +17,21 @@ type BuilderTests() =
     [<Test>]
     member this.simpleSequence() =
         let r = parse helloWorldGrammar "HelloWorld" 
-        
-        r.Value |> should equal (Some "Hello.World")
-        r.index |> should equal 0
-        r.next |> should equal 10
+        match r with
+        | Success s ->
+            s.value |> should equal (Some "Hello.World")
+            s.index |> should equal 0
+            s.next |> should equal 10
+        | Failure f ->
+            Assert.Fail()
         
     [<Test>]
     member this.simpleSequenceFail() =
         let r = parse helloWorldGrammar "HelloWorl" 
-
-        r.failed |> should equal true
-        r.index |> should equal 0
-        r.next |> should equal 0
-
+        match r with
+        | Failure f ->
+            f.index |> should equal 0
+        | _ ->
+            Assert.Fail()
         
     

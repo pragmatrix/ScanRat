@@ -54,6 +54,7 @@
     <Compile Include="BuilderTests.fs" />
     <Compile Include="CalculatorTests.fs" />
     <Compile Include="EdgeCaseTests.fs" />
+    <Compile Include="ErrorHandlingTests.fs" />
     <None Include="packages.config" />
     <None Include="app.config" />
   </ItemGroup>

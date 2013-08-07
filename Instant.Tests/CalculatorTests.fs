@@ -24,16 +24,21 @@ type ParserTests() = class
         | Divide (a, b) -> (compute a) / (compute b)
         | Number a -> a
 
+    let computeFromResult result = 
+        match result with
+        | Success s -> compute s.value
+        | Failure f -> failwith "can't compute, parsing failed"
+
     let simpleCalc input = 
 
         let exp = production()
         exp.rule 
-            <- exp .+ ~~"+" + exp --> fun (a, b) -> Add (a, b) 
+            <- exp .+ ~~"+" + exp --> fun (a, b) -> Add (a, b)
             |- exp .+ ~~"-" + exp --> fun (a, b) -> Subtract (a, b)
             |- digits --> fun n -> Number n
             |- ~~"(" + exp + ~~")" --> fun ((_, e), _) -> e
             
-        (parse exp input).Value |> compute
+        parse exp input |> computeFromResult
 
     // from the IronMeta Project
 
@@ -54,8 +59,7 @@ type ParserTests() = class
         multiplicative.rule <- multiply |- divide |- number
         expression.rule <- additive
 
-        (parse expression input).Value |> compute
-
+        parse expression input |> computeFromResult
 
     [<Test>]
     member this.testCalcNum() =

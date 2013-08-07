@@ -28,6 +28,9 @@ type EdgeCaseTests() = class
     // according to Tratt, the result should be ((1-2)-3)
     [<Test>]
     member this.tratt51() =
-        (parse tratt51Grammar "1-2-3").Value |> should equal "(1-(2-3))"
+        let r = parse tratt51Grammar "1-2-3"
+        match r with
+        | Success s -> s.value |> should equal "(1-(2-3))"
+        | Failure f -> failwith "failed"
 
 end
