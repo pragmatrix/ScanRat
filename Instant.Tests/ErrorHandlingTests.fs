@@ -17,9 +17,12 @@ type ErrorHandlingTests() = class
             |- zeroOrOne
         sg
 
-   // [<Test>]
-   // member this.simple1() =
-   //     let r = parse simpleGrammar "012"
-
+    [<Test>]
+    member this.simple1() =
+        let r = parse simpleGrammar "012"
+        match r with
+        | Failure f -> 
+            f.index |> should equal 2
+        | Success _ -> Assert.Fail()
 
     end

@@ -33,31 +33,38 @@ type ParserTests() = class
 
         let exp = production()
         exp.rule 
-            <- exp .+ ~~"+" + exp --> fun (a, b) -> Add (a, b)
-            |- exp .+ ~~"-" + exp --> fun (a, b) -> Subtract (a, b)
-            |- digits --> fun n -> Number n
-            |- ~~"(" + exp + ~~")" --> fun ((_, e), _) -> e
+            <- exp .+ ~~"+" + exp --> Add
+            |- exp .+ ~~"-" + exp --> Subtract
+            |- digits --> Number
+            |- ~~"(" +. exp .+ ~~")"
             
         parse exp input |> computeFromResult
 
     // from the IronMeta Project
 
     let precedenceCalc input = 
-        let expression = production()
         let multiplicative = production()
         let additive = production()
         
-        let number = digits --> fun d -> Number d
+        let number = digits --> Number
 
-        let add = additive + ~~"+" + multiplicative --> fun ((a, _), c) -> Add(a, c)
-        let sub = additive + ~~"-" + multiplicative --> fun ((a, _), c) -> Subtract(a, c)
+        let add = additive .+ ~~"+" + multiplicative --> Add
+        let sub = additive .+ ~~"-" + multiplicative --> Subtract
 
-        let multiply = multiplicative + ~~"*" + number --> fun ((a, _), c) -> Multiply(a, c)
-        let divide = multiplicative + ~~"/" + number --> fun ((a, _), c) -> Divide(a, c)
+        let multiply = multiplicative .+ ~~"*" + number --> Multiply
+        let divide = multiplicative .+ ~~"/" + number --> Divide
 
-        additive.rule <- add |- sub |- multiplicative
-        multiplicative.rule <- multiply |- divide |- number
-        expression.rule <- additive
+        additive.rule 
+            <- add 
+            |- sub 
+            |- multiplicative
+
+        multiplicative.rule 
+            <- multiply 
+            |- divide 
+            |- number
+
+        let expression = additive
 
         parse expression input |> computeFromResult
 
