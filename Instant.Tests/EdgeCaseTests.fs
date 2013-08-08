@@ -16,7 +16,7 @@ type EdgeCaseTests() = class
     let tratt51Grammar = 
         let num = oneOf "0123456789"
 
-        let expr = production()
+        let expr = production "expr"
         expr.rule 
             <- expr + ~~"-" + expr --> fun ((a, _), c) -> "(" + a + "-" + c + ")"
             |- num --> fun c -> string(c)

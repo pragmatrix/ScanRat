@@ -11,7 +11,7 @@ type ErrorHandlingTests() = class
     let zeroOrOne = ~~"0" |- ~~"1"
 
     let simpleGrammar =
-        let sg = production();
+        let sg = production "sg";
         sg.rule
             <- sg + zeroOrOne --> fun (a, b) -> a + b
             |- zeroOrOne

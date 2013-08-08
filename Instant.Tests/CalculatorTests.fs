@@ -31,7 +31,7 @@ type ParserTests() = class
 
     let simpleCalc input = 
 
-        let exp = production()
+        let exp = production "exp"
         exp.rule 
             <- exp .+ ~~"+" + exp --> Add
             |- exp .+ ~~"-" + exp --> Subtract
@@ -43,8 +43,8 @@ type ParserTests() = class
     // from the IronMeta Project
 
     let precedenceCalc input = 
-        let multiplicative = production()
-        let additive = production()
+        let multiplicative = production "multiplicative"
+        let additive = production "additive"
         
         let number = digits --> Number
 

@@ -21,7 +21,7 @@ type PrimitiveTests() = class
     let lrGrammar =
         let hello = ~~"Hello"
 
-        let g = production()
+        let g = production "g"
         g.rule 
             <- g + hello --> fun (a, b) -> (a + b)
             |- hello

@@ -26,8 +26,8 @@ let parse parser str =
 
 let parser = ParseSequenceBuilder()
 
-let production<'a>() = 
+let production name = 
     let failingResolver = fun () -> fun c -> InstantMatcher.Failure { index = 0 }
-    Parser<'a>("empty", failingResolver)
+    Parser<'a>(name, failingResolver)
 
 type Parser<'a> = InstantCombinators.Parser<'a>
