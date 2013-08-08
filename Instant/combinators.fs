@@ -20,19 +20,18 @@ type ParserContext(index: int, text: string, memo: Memo) =
 type ParseFunc<'r> = ParserContext -> ParseResult<'r>
 
 [<Sealed>]
-type Parser<'r>(resolver: unit -> ParseFunc<'r>) = 
+type Parser<'r>(name: string, resolver: unit -> ParseFunc<'r>) = 
     
     let mutable _mutableResolver = resolver;
     let _resolved = lazy (_mutableResolver());
 
-    member this.assign(p: Parser<'r>) : unit =
-        _mutableResolver <- fun () -> p.parse
-
     member this.parse with get() : ParseFunc<'r> = _resolved.Force()
-    member this.key with get() = _resolved.Force() :> Key
-    member this.rule with set(p: Parser<'r>) = this.assign(p)
+    member this.key with get() = this.parse :> Key
+    member this.name with get () = name
 
-let private mkParser f = Parser(fun () -> f)
+    member this.rule with set(p: Parser<'r>) = _mutableResolver <- fun () -> p.parse
+
+let private mkParser name f = Parser(name, fun () -> f)
 
 let private failure index = Failure { ParseFailure.index = index }
 let private refail result = 
@@ -41,14 +40,9 @@ let private refail result =
     | _ -> failwith "can't refail on a success"
 
 let private success index next value = Success { ParseSuccess.index = index; next = next; value = value }
-let private changeValue result newValue = 
-    match result with
-    | Failure _ -> failwith "can't changeValue on a parse failure"
-    | Success s -> Success { ParseSuccess.index = s.index; next = s.next; value = newValue }
-
 
 let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>= 
-    let res = memoCall c parser.key parser.parse
+    let res = memoCall c parser.name parser.parse
 
     match res with
     | None -> failure c.index
@@ -66,7 +60,7 @@ let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
         | Success s2 as s -> 
         let v = (s1.value, s2.value)
         success s1.index s2.next v
-    |> mkParser
+    |> mkParser (p1.name + "+" + p2.name)
         
 let pOr (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
     fun c ->
@@ -76,9 +70,11 @@ let pOr (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
         match memoParse p2 c with
         | Success _ as s -> s
         | r2 -> r2
-    |> mkParser
+    |> mkParser (p1.name + "|" + p2.name)
 
 let private success_l index length value = success index (index+length) value
+
+let private quote str = "\"" + str + "\""
 
 let pStr (str : string) : Parser<string> = 
     fun (c : ParserContext) ->
@@ -90,7 +86,7 @@ let pStr (str : string) : Parser<string> =
                 success_l c.index str.Length str
             else
                 failure c.index
-    |> mkParser
+    |> mkParser (quote str)
 
 let pOneOf (str : string) : Parser<char> =
     fun (c : ParserContext) ->
@@ -102,7 +98,7 @@ let pOneOf (str : string) : Parser<char> =
                 success_l c.index 1 ch
             else
                 failure c.index
-    |> mkParser
+    |> mkParser ("[" + str + "]")
 
 // Convert a parse result.
 
@@ -112,7 +108,7 @@ let pSelect p f =
         match r with
         | Success s -> success s.index s.next (f s.value)
         | Failure f -> refail r
-    |> mkParser
+    |> mkParser p.name
 
 (* Define some fancy operators!!! *)
 
@@ -129,23 +125,24 @@ type Parser<'resT>
 (* and ultimately, the Builder *)
 
 type ParseSequenceBuilder() = 
-    member this.Bind(p: Parser<'a>, push : 'a -> Parser<'b>) : Parser<'b> =
+    member this.Bind(p: Parser<'a>, cont : 'a -> Parser<'b>) : Parser<'b> =
         fun c -> 
             match memoParse p c with
             | Failure _ as f -> refail f
             | Success s1 as r1 -> 
             let cnext = c.at s1.next
             let v = s1.value
-            let r2 = memoParse (push v) cnext
+            let pc = cont v
+            let r2 = memoParse pc cnext
             // correct "Return" provided results
             match r2 with
             | Failure f2 -> failure s1.index
             | Success s2 -> 
                 let next = if s2.next = 0 then s1.next else s2.next
                 success s1.index next s2.value
-        |> mkParser
+        |> mkParser p.name
 
     member this.Return(v) : Parser<'r> = 
         fun c -> success 0 0 v
-        |> mkParser
+        |> mkParser ""
         

@@ -50,8 +50,8 @@ type PrimitiveTests() = class
         | Failure f -> ()
 
     [<Test>]
-    member this.parseLess() =
-        let r = parse orGrammar "HelloWorld"
+    member this.parsePartial() =
+        let r = parsePartial orGrammar "HelloWorld"
         valueOf r |> should equal "Hello"
 
     [<Test>]
@@ -71,12 +71,12 @@ type PrimitiveTests() = class
 
     [<Test>]
     member this.ParsePrecendence3() =
-        let r = parse helloOrWorldBuilder "HelloWorldBuilder"
+        let r = parsePartial helloOrWorldBuilder "HelloWorldBuilder"
         valueOf r |> should equal "Hello"
 
     [<Test>]
     member this.ParsePrecendence4() =
-        let r = parse helloOrWorldBuilder "HelloWorld"
+        let r = parsePartial helloOrWorldBuilder "HelloWorld"
         valueOf r |> should equal "Hello"
 
     [<Test>]

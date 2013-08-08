@@ -73,9 +73,10 @@ type Dictionary<'k, 'v> with
         | (true, v) -> Some v
         | (false, _) -> None
 
-let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'r :> IItem) : (IItem option) =
+let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -> 'r :> IItem) : (IItem option) =
     let memo = context.memo
     let index = context.index
+    let key = production :> Key
     let expansion = { key = key; num = 0 }
 
     match tryGetMemo memo expansion index with
@@ -131,7 +132,7 @@ let rec memoCall (context:'c :> IParseContext) (key: Key) (production : 'c -> 'r
         memoize memo expansion index result
 
     if result.IsNone then
-        addError memo index (fun () -> "expected " + expansion.key.ToString())
+        addError memo index (fun () -> "expected " + name)
 
     result
 
