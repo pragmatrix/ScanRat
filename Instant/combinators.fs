@@ -43,11 +43,9 @@ let private success index next value = Success { ParseSuccess.index = index; nex
 
 let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>= 
     let res = memoCall c parser.name parser.parse
-
     match res with
     | None -> failure c.index
     | Some item -> downcast item
-
 
 let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
     fun c -> 
@@ -55,9 +53,8 @@ let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
         | Failure _ as f -> refail f
         | Success s1 ->
         match c.at s1.next |> memoParse p2 with
-        // we do fail at the second claus here, this is probably wrong
-        | Failure f2 as f -> failure f2.index
-        | Success s2 as s -> 
+        | Failure f2 -> failure s1.index
+        | Success s2 -> 
         let v = (s1.value, s2.value)
         success s1.index s2.next v
     |> mkParser (p1.name + "+" + p2.name)
@@ -134,7 +131,6 @@ type ParseSequenceBuilder() =
             let v = s1.value
             let pc = cont v
             let r2 = memoParse pc cnext
-            // correct "Return" provided results
             match r2 with
             | Failure f2 -> failure s1.index
             | Success s2 -> 

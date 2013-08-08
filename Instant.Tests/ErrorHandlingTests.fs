@@ -20,7 +20,7 @@ type ErrorHandlingTests() = class
 
     let oneAndTwo = ~~"one" + ~~"two" --> fun (a, b) -> a + b
 
-    let oneTwoOrOneOne = oneAndTwo |- ~~"oneone"
+    let oneTwoOrOneOne = oneAndTwo |- ~~"one" + ~~"one"  --> fun (a, b) -> a + b
 
     [<Test>]
     member this.expectedEndOfInput() =
@@ -30,23 +30,22 @@ type ErrorHandlingTests() = class
             f.index |> should equal 2
         | Success _ -> Assert.Fail()
 
-
-
     [<Test>]
     member this.expectedSomethingElse() =
         let r = parse oneAndTwo "onetwe"
         match r with
         | Failure f -> 
             f.index |> should equal 3
+            f.expectations |> should equal ["\"two\""]
         | Success _ -> Assert.Fail()
 
-
     [<Test>]
-    member this.errorRecordButNoError() =
-        let r = parse oneTwoOrOneOne "oneone"
+    member this.expectedTwoOtherStrings() =
+        let r = parse oneTwoOrOneOne "onetwe"
         match r with
         | Failure f -> 
             f.index |> should equal 3
+            f.expectations |> should equal ["\"two\"", "\"one\""]
         | Success _ -> Assert.Fail()
 
     end

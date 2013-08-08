@@ -3,7 +3,14 @@
 open System;
 open System.Collections.Generic;
 
+type Dictionary<'k, 'v> with
+    member this.TryFind key =
+        match this.TryGetValue key with
+        | (true, v) -> Some v
+        | (false, _) -> None
+
 type ParseSuccess<'v> = { value: 'v; index: int; next: int }
+
 type ParseFailure = { index: int }
 
 type IItem =
@@ -46,32 +53,32 @@ type LRRecord = {
 
 type RecordTable = Dictionary<int, LRRecord>
 type LRTable = Dictionary<Key, RecordTable>
+
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;
     callStack: Stack<LRRecord>;
-    errorMsgs: List<unit -> string>;
+    errorMsgs: Dictionary<int, List<string>>;
     mutable lastErrorPos: int;
     } 
-    with static member create() = {
+    with 
+        static member create() = {
             table = new MemoTable(); 
             recursions = new LRTable(); 
             callStack = new Stack<LRRecord>(); 
-            errorMsgs = new List<unit -> string>();
+            errorMsgs = new Dictionary<_,_>();
             lastErrorPos = -1;
             }
+        member this.expectationsFor index = 
+            match this.errorMsgs.TryFind index with
+            | Some expectations -> expectations |> Seq.toList
+            | None -> []
 
 type IParseContext =
     abstract member memo : Memo with get
     abstract member index : int with get
 
 exception MatcherException of Error
-
-type Dictionary<'k, 'v> with
-    member this.TryFind key =
-        match this.TryGetValue key with
-        | (true, v) -> Some v
-        | (false, _) -> None
 
 let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -> 'r :> IItem) : (IItem option) =
     let memo = context.memo
@@ -132,7 +139,7 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         memoize memo expansion index result
 
     if result.IsNone then
-        addError memo index (fun () -> "expected " + name)
+        addError memo index name
 
     result
 
@@ -185,7 +192,15 @@ and forgetLRRecord memo expansion index =
     | Some recordDict -> recordDict.Remove index |> ignore
     | None -> ()
       
-and addError memo pos messageFunc =
+// we should probably purge all errors at lower positions.
+
+and addError memo pos message =
     if pos > memo.lastErrorPos then
-        memo.errorMsgs.Add messageFunc
+        match memo.errorMsgs.TryFind pos with
+        | None ->
+            let newLst = new List<_>()
+            newLst.Add(message)
+            memo.errorMsgs.Add(pos, newLst)
+        | Some lst ->
+            lst.Add message
         memo.lastErrorPos <- pos

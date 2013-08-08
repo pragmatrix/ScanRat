@@ -20,8 +20,7 @@ type BuilderTests() =
         match r with
         | Success s ->
             s.value |> should equal (Some "Hello.World")
-            s.index |> should equal 0
-            s.next |> should equal 10
+            s.consumed |> should equal 10
         | Failure f ->
             Assert.Fail()
         
@@ -30,8 +29,7 @@ type BuilderTests() =
         let r = parse helloWorldGrammar "HelloWorl" 
         match r with
         | Failure f ->
-            f.index |> should equal 0
+            f.index |> should equal 5
         | _ ->
             Assert.Fail()
-        
     
