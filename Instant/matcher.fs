@@ -195,7 +195,7 @@ and forgetLRRecord memo expansion index =
 // we should probably purge all errors at lower positions.
 
 and addError memo pos message =
-    if pos > memo.lastErrorPos then
+    if pos >= memo.lastErrorPos then
         match memo.errorMsgs.TryFind pos with
         | None ->
             let newLst = new List<_>()

@@ -45,7 +45,7 @@ type ErrorHandlingTests() = class
         match r with
         | Failure f -> 
             f.index |> should equal 3
-            f.expectations |> should equal ["\"two\"", "\"one\""]
+            f.expectations |> should equal ["\"two\""; "\"one\""]
         | Success _ -> Assert.Fail()
 
     end
