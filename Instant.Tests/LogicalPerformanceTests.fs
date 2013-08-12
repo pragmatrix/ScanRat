@@ -42,4 +42,30 @@ type LogicalPerformanceTests() = class
         | Success s ->
             s.stats |> should equal [353;0;58]
 
+    (* direct memoization *)
+
+    [<Test>]
+    member this.ambiguitiesMustResultInDirectMemoization() =
+        let g =  digits + ~~"Hello"
+              |- digits + ~~"World"
+
+        let r = parse g "1World"
+        match r with
+        | Failure _ -> Assert.Fail()
+        | Success s ->
+            s.stats.[1] |> should equal 1
+
+    [<Test>]
+    member this.directMemoizationStatDoesNotCaptureLeafs() =
+        let g =  digits + ~~"Hello"
+              |- digits + ~~"World"
+
+        let r = parse g "42World"
+        match r with
+        | Failure _ -> Assert.Fail()
+        | Success s ->
+            // only digits is treated as a memoization and the digits are then
+            // returned as a direct result
+            s.stats.[1] |> should equal 1
+
     end
