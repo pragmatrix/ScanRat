@@ -7,7 +7,7 @@ let inline (~~) (str:string) = pStr str
 
 let oneOf = pOneOf
 
-type ParsingSuccess<'v> = { consumed: int; value: 'v } 
+type ParsingSuccess<'v> = { consumed: int; value: 'v; stats: int list } 
 type ParsingFailure = { index: int; expectations: string list}
 
 type ParsingResult<'v> =
@@ -16,10 +16,13 @@ type ParsingResult<'v> =
 
 let parsePartial parser str =
     let c = InstantCombinators.ParserContext.create(str)
+    let memo = (c :> InstantMatcher.IParseContext).memo
     match memoParse parser c with
-    | InstantMatcher.Success s -> Success { consumed = s.next; value = s.value }
+    | InstantMatcher.Success s -> 
+        let stats = memo.stats
+        Success { consumed = s.next; value = s.value; stats = 
+            [ stats.productions; stats.memo; stats.memoLR] }
     | InstantMatcher.Failure f -> 
-        let memo = (c :> InstantMatcher.IParseContext).memo
         Failure { index = memo.lastErrorPos; expectations = memo.expectationsFor memo.lastErrorPos }
 
 let parse parser str = 

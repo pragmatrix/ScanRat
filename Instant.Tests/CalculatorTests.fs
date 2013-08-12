@@ -6,13 +6,6 @@ open FsUnit
 open Instant
 open TestGrammars
 
-type Exp = 
-    | Add of Exp * Exp
-    | Subtract of Exp * Exp
-    | Multiply of Exp * Exp
-    | Divide of Exp * Exp
-    | Number of int
-
 [<TestFixture>]
 type ParserTests() = class
     
@@ -43,30 +36,7 @@ type ParserTests() = class
     // from the IronMeta Project
 
     let precedenceCalc input = 
-        let multiplicative = production "multiplicative"
-        let additive = production "additive"
-        
-        let number = digits --> Number
-
-        let add = additive .+ ~~"+" + multiplicative --> Add
-        let sub = additive .+ ~~"-" + multiplicative --> Subtract
-
-        let multiply = multiplicative .+ ~~"*" + number --> Multiply
-        let divide = multiplicative .+ ~~"/" + number --> Divide
-
-        additive.rule 
-            <- add 
-            |- sub 
-            |- multiplicative
-
-        multiplicative.rule 
-            <- multiply 
-            |- divide 
-            |- number
-
-        let expression = additive
-
-        parse expression input |> computeFromResult
+        parse precedenceCalcExpression input |> computeFromResult
 
     [<Test>]
     member this.testCalcNum() =

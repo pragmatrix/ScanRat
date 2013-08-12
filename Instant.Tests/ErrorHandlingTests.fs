@@ -48,4 +48,13 @@ type ErrorHandlingTests() = class
             f.expectations |> should equal ["\"two\""; "\"one\""]
         | Success _ -> Assert.Fail()
 
+    [<Test>]
+    member this.dontReportParentClausesAtTheSameIndex() =
+        let p = ~~"one" |- ~~"two"
+        let r = parse  p "x"
+        match r with
+        | Failure f ->
+            f.index |> should equal 0
+            f.expectations.Length |> should equal 2
+        | Success _ -> Assert.Fail()
     end

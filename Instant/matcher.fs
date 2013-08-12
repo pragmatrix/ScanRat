@@ -54,12 +54,26 @@ type LRRecord = {
 type RecordTable = Dictionary<int, LRRecord>
 type LRTable = Dictionary<Key, RecordTable>
 
+type Stats = {
+    // number of actual production calls
+    mutable productions: int;
+    // number of successful memo lookups
+    mutable memo: int;
+    // number of successful lr memo lookupos
+    mutable memoLR: int;
+    }
+    with 
+        member this.trackProduction() = this.productions <- this.productions + 1
+        member this.trackMemo() = this.memo <- this.memo + 1
+        member this.trackMemoLR() = this.memoLR <- this.memoLR + 1
+
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;
     callStack: Stack<LRRecord>;
     errorMsgs: Dictionary<int, List<string>>;
     mutable lastErrorPos: int;
+    stats: Stats;
     } 
     with 
         static member create() = {
@@ -68,6 +82,7 @@ type Memo = {
             callStack = new Stack<LRRecord>(); 
             errorMsgs = new Dictionary<_,_>();
             lastErrorPos = -1;
+            stats = { memo = 0; memoLR = 0; productions = 0}
             }
         member this.expectationsFor index = 
             match this.errorMsgs.TryFind index with
@@ -87,7 +102,9 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
     let expansion = { key = key; num = 0 }
 
     match tryGetMemo memo expansion index with
-    | Some result -> result
+    | Some result -> 
+        memo.stats.trackMemo()
+        result
     | _ ->
 
     match tryGetLRRecord memo expansion index with
@@ -95,7 +112,9 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         record.lrDetected <- true
         match tryGetMemo memo record.expansion index with
         | None -> raise (MatcherException({ index = index; message = "Problem with expansion" }))
-        | Some result -> result
+        | Some result -> 
+            memo.stats.trackMemoLR()
+            result
     | None ->
 
     // no lr information
@@ -114,7 +133,10 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
     memo.callStack.Push record
 
     let rec resolveItem() : IItem option = 
+
         let pResult = production context :> IItem
+        memo.stats.trackProduction()
+
         let result = if pResult.isSuccess then (Some pResult) else None
         // do we need to keep trying the expansions?
         
