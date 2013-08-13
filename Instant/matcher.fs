@@ -45,10 +45,10 @@ type Expansion = { key: Key; num : int }
 
 type LRRecord = {
     mutable expansion: Expansion; 
-    mutable expansions: int; 
     mutable lrDetected: bool; 
     mutable nextIndex: int; 
-    mutable result: IItem option
+    mutable result: IItem option;
+    name : string;
     }
 
 type RecordTable = Dictionary<int, LRRecord>
@@ -127,10 +127,10 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
 
     let record = { 
         LRRecord.lrDetected = false; 
-        expansions = 1; 
         expansion = recordExpansion; 
         nextIndex = -1; 
-        result = None }
+        result = None;
+        name = name }
 
     startLRRecord memo expansion index record
     memo.callStack.Push record
@@ -144,8 +144,7 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         // do we need to keep trying the expansions?
         
         if record.lrDetected && result.IsSome && result.Value.next > record.nextIndex then
-            record.expansions <- record.expansions + 1
-            record.expansion <- { expansion with num = record.expansions }
+            record.expansion <- { expansion with num = record.expansion.num + 1 }
             record.nextIndex <- result.Value.next
             memoize memo record.expansion index result
             record.result <- result
