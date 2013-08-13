@@ -10,7 +10,7 @@ let oneOf = pOneOf
 type ParsingError = InstantMatcher.ErrorRecord
 
 type ParsingSuccess<'v> = { consumed: int; value: 'v; stats: int list } 
-type ParsingFailure = { index: int; expectations: ParsingError seq}
+type ParsingFailure = { index: int; expectations: ParsingError seq }
 
 type ParsingResult<'v> =
     | Success of ParsingSuccess<'v>

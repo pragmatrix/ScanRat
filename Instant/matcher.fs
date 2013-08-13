@@ -86,7 +86,7 @@ type Memo = {
             callStack = new Stack<LRRecord>(); 
             lastErrorRecords = new List<_>();
             lastErrorPos = -1;
-            stats = { memo = 0; memoLR = 0; productions = 0}
+            stats = { memo = 0; memoLR = 0; productions = 0 }
             }
         member this.lastError 
             with get() : ErrorRecord seq  = 
