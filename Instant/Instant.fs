@@ -7,7 +7,7 @@ let inline (~~) (str:string) = pStr str
 
 let oneOf = pOneOf
 
-type ParsingError = InstantMatcher.ErrorRecord
+type ParsingError = InstantMatcher.ParsingError
 
 type ParsingSuccess<'v> = { consumed: int; value: 'v; stats: int list } 
 type ParsingFailure = { index: int; expectations: ParsingError seq }
@@ -25,12 +25,12 @@ let parsePartial parser str =
         Success { consumed = s.next; value = s.value; stats = 
             [ stats.productions; stats.memo; stats.memoLR] }
     | InstantMatcher.Failure f -> 
-        Failure { index = memo.lastErrorPos; expectations = memo.lastErrorRecords }
+        Failure { index = memo.lastErrorPos; expectations = memo.lastError }
 
 let parse parser str = 
     let r = parsePartial parser str
     match r with
-    | Success s when s.consumed <> str.Length -> Failure { index = s.consumed; expectations = [{ expected = "end of input"; callStack = []}]}
+    | Success s when s.consumed <> str.Length -> Failure { index = s.consumed; expectations = [{ expected = "end of input"; stack = []}]}
     | _ -> r
 
 let parser = ParseSequenceBuilder()

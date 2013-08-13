@@ -67,14 +67,18 @@ type Stats = {
         member this.trackMemo() = this.memo <- this.memo + 1
         member this.trackMemoLR() = this.memoLR <- this.memoLR + 1
 
+
 type ErrorRecord = {
+    key: Object
     expected: string;
-    callStack: string seq; }
+    callStack: LRRecord list; }
+
+type ParsingError = { expected: string; stack: string seq }
 
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;
-    callStack: Stack<LRRecord>;
+    mutable callStack: LRRecord list;
     lastErrorRecords: List<ErrorRecord>;
     mutable lastErrorPos: int;
     stats: Stats;
@@ -83,14 +87,21 @@ type Memo = {
         static member create() = {
             table = new MemoTable(); 
             recursions = new LRTable(); 
-            callStack = new Stack<LRRecord>(); 
+            callStack = List.empty; 
             lastErrorRecords = new List<_>();
             lastErrorPos = -1;
             stats = { memo = 0; memoLR = 0; productions = 0 }
             }
         member this.lastError 
-            with get() : ErrorRecord seq  = 
-                Seq.ofArray(this.lastErrorRecords.ToArray())
+            with get() : ParsingError seq = 
+                let keys = new HashSet<_>()
+                seq {
+                    for er in this.lastErrorRecords do
+                        if not (keys.Contains er.key) then
+                            yield { ParsingError.expected = er.expected; stack = List.map (fun lr -> lr.name) er.callStack }
+                            List.iter (fun lr -> keys.Add(lr.expansion.key) |> ignore) er.callStack
+                            keys.Add(er.key) |> ignore
+                }
 
 type IParseContext =
     abstract member memo : Memo with get
@@ -133,7 +144,7 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         name = name }
 
     startLRRecord memo expansion index record
-    memo.callStack.Push record
+    memo.callStack <- record :: memo.callStack
 
     let rec resolveItem() : IItem option = 
 
@@ -155,7 +166,7 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
 
     let result = resolveItem()
 
-    memo.callStack.Pop() |> ignore
+    memo.callStack <- memo.callStack.Tail
     forgetLRRecord memo expansion index
 
     // if there are no LR-processing rules at or above us in the stack, memoize
@@ -163,7 +174,7 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         memoize memo expansion index result
 
     if result.IsNone then
-        addError memo index { expected = name; callStack = [] }
+        addError memo index { key = key; expected = name; callStack = memo.callStack }
 
     result
 
