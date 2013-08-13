@@ -36,7 +36,7 @@ type ErrorHandlingTests() = class
         match r with
         | Failure f -> 
             f.index |> should equal 3
-            f.expectations |> should equal ["\"two\""]
+            f.expectations |> Seq.map (fun r -> r.expected) |> should equal ["\"two\""]
         | Success _ -> Assert.Fail()
 
     [<Test>]
@@ -45,7 +45,7 @@ type ErrorHandlingTests() = class
         match r with
         | Failure f -> 
             f.index |> should equal 3
-            f.expectations |> should equal ["\"two\""; "\"one\""]
+            f.expectations |> Seq.map (fun r -> r.expected) |> should equal ["\"two\""; "\"one\""]
         | Success _ -> Assert.Fail()
 
     [<Test>]
@@ -55,6 +55,6 @@ type ErrorHandlingTests() = class
         match r with
         | Failure f ->
             f.index |> should equal 0
-            f.expectations.Length |> should equal 2
+            f.expectations |> Seq.length |> should equal 2
         | Success _ -> Assert.Fail()
     end

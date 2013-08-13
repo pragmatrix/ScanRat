@@ -67,11 +67,15 @@ type Stats = {
         member this.trackMemo() = this.memo <- this.memo + 1
         member this.trackMemoLR() = this.memoLR <- this.memoLR + 1
 
+type ErrorRecord = {
+    expected: string;
+    callStack: string seq; }
+
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;
     callStack: Stack<LRRecord>;
-    errorMsgs: Dictionary<int, List<string>>;
+    lastErrorRecords: List<ErrorRecord>;
     mutable lastErrorPos: int;
     stats: Stats;
     } 
@@ -80,14 +84,13 @@ type Memo = {
             table = new MemoTable(); 
             recursions = new LRTable(); 
             callStack = new Stack<LRRecord>(); 
-            errorMsgs = new Dictionary<_,_>();
+            lastErrorRecords = new List<_>();
             lastErrorPos = -1;
             stats = { memo = 0; memoLR = 0; productions = 0}
             }
-        member this.expectationsFor index = 
-            match this.errorMsgs.TryFind index with
-            | Some expectations -> expectations |> Seq.toList
-            | None -> []
+        member this.lastError 
+            with get() : ErrorRecord seq  = 
+                Seq.ofArray(this.lastErrorRecords.ToArray())
 
 type IParseContext =
     abstract member memo : Memo with get
@@ -161,7 +164,7 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         memoize memo expansion index result
 
     if result.IsNone then
-        addError memo index name
+        addError memo index { expected = name; callStack = [] }
 
     result
 
@@ -216,13 +219,10 @@ and forgetLRRecord memo expansion index =
       
 // we should probably purge all errors at lower positions.
 
-and addError memo pos message =
+and addError memo pos error =
+    if pos > memo.lastErrorPos then
+        memo.lastErrorRecords.Clear()
+
     if pos >= memo.lastErrorPos then
-        match memo.errorMsgs.TryFind pos with
-        | None ->
-            let newLst = new List<_>()
-            newLst.Add(message)
-            memo.errorMsgs.Add(pos, newLst)
-        | Some lst ->
-            lst.Add message
+        memo.lastErrorRecords.Add(error)
         memo.lastErrorPos <- pos
