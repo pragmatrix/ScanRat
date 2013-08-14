@@ -5,12 +5,12 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>b924a3b9-30a5-4a84-8fad-3dd711907e09</ProjectGuid>
+    <ProjectGuid>8fd7d789-18d7-45a4-8d66-f7d1c37b8d3f</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Instant.Tests</RootNamespace>
-    <AssemblyName>Instant.Tests</AssemblyName>
+    <RootNamespace>ScanRat</RootNamespace>
+    <AssemblyName>ScanRat</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>Instant.Tests</Name>
+    <Name>ScanRat</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,7 +20,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\Instant.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\ScanRat.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,48 +29,26 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\Instant.Tests.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\ScanRat.XML</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <ItemGroup>
-    <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.2.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Compile Include="matcher.fs" />
+    <Compile Include="combinators.fs" />
+    <Compile Include="ScanRat.fs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="TestGrammars.fs" />
-    <Compile Include="PrimitiveTests.fs" />
-    <Compile Include="BuilderTests.fs" />
-    <Compile Include="CalculatorTests.fs" />
-    <Compile Include="EdgeCaseTests.fs" />
-    <Compile Include="ErrorHandlingTests.fs" />
-    <Compile Include="LogicalPerformanceTests.fs" />
-    <Compile Include="FSharpTests.fs" />
-    <None Include="packages.config" />
-    <None Include="app.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Instant\Instant.fsproj">
-      <Name>Instant</Name>
-      <Project>{8fd7d789-18d7-45a4-8d66-f7d1c37b8d3f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

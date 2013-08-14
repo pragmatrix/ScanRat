@@ -1,9 +1,9 @@
-﻿namespace Instant.Tests
+﻿namespace ScanRat.Tests
 
 open NUnit.Framework
 open FsUnit
 
-open Instant
+open ScanRat
 
 [<TestFixture>]
 type BuilderTests() =

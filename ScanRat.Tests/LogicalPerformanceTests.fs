@@ -1,9 +1,9 @@
-﻿namespace Instant.Tests.LogicalPerformanceTests
+﻿namespace ScanRat.Tests.LogicalPerformanceTests
 
 open NUnit.Framework
 open FsUnit
 
-open Instant
+open ScanRat
 
 open TestGrammars
 

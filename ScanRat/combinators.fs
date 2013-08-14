@@ -1,6 +1,6 @@
-﻿module InstantCombinators
+﻿module ScanRatCombinators
 
-open InstantMatcher
+open ScanRatMatcher
 
 [<Sealed>]
 type ParserContext(index: int, text: string, memo: Memo) = 

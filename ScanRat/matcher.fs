@@ -1,4 +1,4 @@
-﻿module InstantMatcher
+﻿module ScanRatMatcher
 
 open System;
 open System.Collections.Generic;

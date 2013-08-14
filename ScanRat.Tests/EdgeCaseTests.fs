@@ -1,9 +1,9 @@
-﻿namespace Instant.Tests.EdgeCaseTests
+﻿namespace ScanRat.Tests.EdgeCaseTests
 
 open NUnit.Framework
 open FsUnit
 
-open Instant
+open ScanRat
 
 [<TestFixture>]
 type EdgeCaseTests() = class

@@ -1,11 +1,11 @@
-﻿namespace Instant.Tests.FSharpTests
+﻿namespace ScanRat.Tests.FSharpTests
 
 (* Tests that clarify assumptions made about the F# language *)
 
 open NUnit.Framework
 open FsUnit
 
-open Instant
+open ScanRat
 
 [<TestFixture>]
 type FSharpTests() = class

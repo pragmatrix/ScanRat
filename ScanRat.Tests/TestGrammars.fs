@@ -1,6 +1,6 @@
 ﻿module TestGrammars
 
-open Instant
+open ScanRat
 
 let digits =
     let digit = oneOf "0123456789" --> fun d -> int(d) - int('0')
