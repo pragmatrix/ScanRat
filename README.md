@@ -6,7 +6,6 @@ ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts 
 
 - Automatic memoization of the parsing results.
 - Direct and mutual left recursion as specified in (ref TBD).
-- Some error handling (includes the parse stack).
 - Computation Expressions to conventiently parse sequences (inspired by Sprache's LinQ SelectMany "hack").
 
 ## Limitations
