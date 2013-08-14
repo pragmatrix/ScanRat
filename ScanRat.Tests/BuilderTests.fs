@@ -7,7 +7,7 @@ open ScanRat
 
 [<TestFixture>]
 type BuilderTests() =
-    let helloWorldGrammar = parser {
+    let helloWorldGrammar = parseq {
                 let! a = ~~"Hello"
                 let! b = ~~"World"
                 // Some ... just to change the return type

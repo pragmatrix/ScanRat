@@ -33,7 +33,7 @@ let parse parser str =
     | Success s when s.consumed <> str.Length -> Failure { index = s.consumed; expectations = [{ expected = "end of input"; stack = []}]}
     | _ -> r
 
-let parser = ParseSequenceBuilder()
+let parseq = ParseSequenceBuilder()
 
 let production name = 
     let failingResolver = fun () -> fun c -> ScanRatMatcher.Failure { index = 0 }
