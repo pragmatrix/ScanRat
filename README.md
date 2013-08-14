@@ -1,22 +1,22 @@
 # ScanRat - PEG Parser Combinators for F# with support for Left Recursion
 
-ScanRat is a mashup of the IronMeta PackRat parsing algorithm, that supports left recursion, and the ideas from the FParsec and Sprache projects.
+ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts of the [FParsec](http://www.quanttec.com/fparsec/) and [Sprache](https://github.com/sprache/sprache) projects.
 
 ## Features
 
 - Automatic memoization of the parsing results.
-- Direct and mutual left recursion as specified in 
-- Some error handling (includes the parse stack)
+- Direct and mutual left recursion as specified in (ref TBD).
+- Some error handling (includes the parse stack).
 - Computation Expressions to conventiently parse sequences (inspired by Sprache's LinQ SelectMany "hack").
 
 ## Limitations
 
-- If a direct left and right recursion is used in one rule, the algorithm wrongly right-associates the parses as noted by Tratt in his paper.
+- If a direct left and right recursion is used in one rule, the algorithm wrongly right-associates the parses as noted by Tratt in his paper (ref TBD).
 
 ## Soon
 
 - RegExp support
-- Source indices must be accessible when for the result generators.
+- Source indices must be accessible inside the result generators (define an additional production operator?).
 
 To use ScanRat, check out and import the ScanRat project or install the (upcoming) NuGet package.
 
@@ -26,7 +26,7 @@ A grammar is specified as a collection of production rules. The rules are build 
 
 ## Generic Combinators
 
-The combinators listed here can be applied to any parsing rule of any type.
+The generic combinators listed here can be applied to any parsing rule of any type.
 
 - `+` is the sequence combinator
 
@@ -34,23 +34,25 @@ The combinators listed here can be applied to any parsing rule of any type.
 
 	is a production rule that parses two digits, not one, not zero not three.
 
-	Sequence combinators are left associative, which means that they are combined from left to right. The parsing result type of the `+` sequence combinator is a tuple that contains the parsing result of the left and the parsing right of the right production rule.
+	Sequence combinators are left associative, which means that they are combined from left to right. The parsing result type of the `+` sequence combinator is a tuple that contains the parsing result of the left rule and the parsing right of the right production rule.
 
-	To ignore intermediate parsing results, the `+.` and `.+` sequence combinators only use the result of the expression at the side of the dot.
+	The `+.` and `.+` sequence combinators can be used to only process the result of the rule that is placed at the side of the dot.
 
-- **|-** is the choice combinator
+- `|-` is the choice combinator
 
 		let eitherLeftOrRight = left |- right
+
+	Parses either left or right. If both rules match the input, the first rule is preferred. Both rules must be of the same result type.
 
 	The choice combinator is also left associative, but has a lower priority than the sequence combinators, which means that you can put sequences nicely inside the choice rules without using paranthesis:
 
 		let driverDecision = accellerate + overtake |- driveSlowly
 
-- **-->** is the production combinator
+- `-->` is the production combinator
 
 	`-->` is used to capture and convert the parsing result. It expects a function that takes the parsing result from the rule on the left side and converts its result.
 
-	For example, when parsing a two digit number, and digits itself are two integers, a the resulting number can be computed on the spot:
+	For example, when parsing a two digit number, and `digit` itself is a rule that returns an integer, the resulting number can be computed on the spot:
 
 		let twoDigitNumber = digit + digit --> fun (digit1, digit2) -> digit1 * 10 + digit2
 
@@ -58,13 +60,13 @@ The combinators listed here can be applied to any parsing rule of any type.
 
 The string specific combinators are optimized to handle string based input.
 
-- `~~` Parses a simple string. This is an unary combinator that is placed in front of a string to make them a parsing rule. The rule's return type is a string.
+- `~~` Parses a simple string. This is an unary combinator that is placed in front of a string to convert it to a parsing rule. The rule's return type is a string.
 
 		let hello = ~~"Hello"
 
 	defines a rule that parses the string "Hello".
 
-- `oneOf` Parses one character of a string. The rule's return type is char.
+- `oneOf` Parses one character of a string. The rule's return type is character.
 
 		let oneOrTwo = oneOf "12"
 
@@ -123,6 +125,10 @@ could also be defined by a much more readable
 	}
 
 ## Error handling
+
+TBD
+
+## License
 
 TBD
 

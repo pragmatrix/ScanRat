@@ -2,9 +2,9 @@
 
 open ScanRat
 
-let digits =
-    let digit = oneOf "0123456789" --> fun d -> int(d) - int('0')
+let digit = oneOf "0123456789" --> fun d -> int(d) - int('0')
 
+let digits =
     let digits = production "digits"
     digits.rule 
         <- digits + digit --> fun (a, b) -> a*10+b 
@@ -42,3 +42,23 @@ let precedenceCalcExpression =
         |- number
 
     additive
+
+(* grammars used in the documentation / README.md *)
+
+let twoDigitNumber = digit + digit --> fun (digit1, digit2) -> digit1 * 10 + digit2
+let hello = ~~"Hello"
+let oneOrTwo = oneOf "12"
+let _ =
+    let oneOrTwo = (~~"1" |- ~~"2") --> fun str -> str.[0]
+    ()
+
+let _ =
+    let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
+    let r = parse digit "3"
+    match r with
+    | Success s -> s.value
+    | Failure f -> failwith "error"
+    
+
+
+
