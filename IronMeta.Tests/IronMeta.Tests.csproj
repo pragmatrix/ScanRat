@@ -47,12 +47,6 @@
     <None Include="packages.config" />
     <None Include="tratt5.ironmeta" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ironmeta\Source\Matcher\IronMeta.Matcher.csproj">
-      <Project>{ef704069-517a-48a5-9af2-1b257544d358}</Project>
-      <Name>IronMeta.Matcher</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
