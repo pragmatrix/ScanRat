@@ -227,8 +227,6 @@ and forgetLRRecord memo expansion index =
     | Some recordDict -> recordDict.Remove index |> ignore
     | None -> ()
       
-// we should probably purge all errors at lower positions.
-
 and addError memo pos error =
     if pos > memo.lastErrorPos then
         memo.lastErrorRecords.Clear()
