@@ -17,7 +17,9 @@ ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts 
 - RegExp support
 - Source indices must be accessible inside the result generators (define an additional production operator?).
 
-To use ScanRat, check out and import the ScanRat project or install the (upcoming) NuGet package.
+## Get Started
+
+To use ScanRat, check out and import the ScanRat project or install the [NuGet package](https://www.nuget.org/packages/ScanRat/).
 
 	open ScanRat
 
