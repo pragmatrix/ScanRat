@@ -8,22 +8,20 @@ ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts 
 - Direct and mutual left recursion as specified in the paper [Left Recursion in Parsing Expression Grammars](http://arxiv.org/pdf/1207.0443v1.pdf).
 - Computation Expressions to conventiently parse sequences (inspired by Sprache's LinQ SelectMany "hack").
 
-## Limitations
-
-- If a direct left and right recursion is used in one rule, the algorithm wrongly right-associates the parses [as noted by Tratt in his paper](http://tratt.net/laurie/research/pubs/papers/tratt__direct_left_recursive_parsing_expression_grammars.pdf).
-
-## Soon
+and soon
 
 - RegExp support
 - Source indices must be accessible inside the result generators (define an additional production operator?).
 
 ## Get Started
 
-To use ScanRat, check out and import the ScanRat project or install the [NuGet package](https://www.nuget.org/packages/ScanRat/).
+To use ScanRat in Visual Studio, install the [NuGet package](https://www.nuget.org/packages/ScanRat/) or clone this repository and refer the `ScanRat/ScanRat.fsproj` project.
+
+In your F# source file, add
 
 	open ScanRat
 
-A grammar is specified as a collection of production rules. The rules are build from a number of combinators.
+and start writing grammars. A grammar is specified as a collection of production rules. The rules are build from a number of combinators.
 
 ## Generic Combinators
 
@@ -127,6 +125,11 @@ may also be specified by a much more readable
 ## Error handling
 
 TBD
+
+## Limitations
+
+- If a direct left and right recursion is used in one rule, the algorithm incorrectly right-associates the parses [as noted by Laurence Tratt in his paper](http://tratt.net/laurie/research/pubs/papers/tratt__direct_left_recursive_parsing_expression_grammars.pdf).
+- The parsers that are built inside a computation expression can not be memoized, but the parsers they refer to, can. So it's recommended to refer to parsers from inside computation expressions.
 
 ## Acknowledges
 
