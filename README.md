@@ -5,12 +5,12 @@ ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts 
 ## Features
 
 - Automatic memoization of the parsing results.
-- Direct and mutual left recursion as specified in (ref TBD).
+- Direct and mutual left recursion as specified in the paper [Left Recursion in Parsing Expression Grammars](http://arxiv.org/pdf/1207.0443v1.pdf).
 - Computation Expressions to conventiently parse sequences (inspired by Sprache's LinQ SelectMany "hack").
 
 ## Limitations
 
-- If a direct left and right recursion is used in one rule, the algorithm wrongly right-associates the parses as noted by Tratt in his paper (ref TBD).
+- If a direct left and right recursion is used in one rule, the algorithm wrongly right-associates the parses [as noted by Tratt in his paper](http://tratt.net/laurie/research/pubs/papers/tratt__direct_left_recursive_parsing_expression_grammars.pdf).
 
 ## Soon
 
@@ -107,7 +107,7 @@ Here the `production` function creates an initially named, but empty production 
 
 Tranforming more than three items with the `+` sequence combinators into an aggregate may get a bit annoying, because each new item generates a new tuple that contains the previous result type in its first type argument.
 
-So for more complex sequences, there is an alternative which makes use of Computation Expressions (TBD link):
+So for more complex sequences, there is an alternative which makes use of [Computation Expressions](http://msdn.microsoft.com/en-us/library/dd233182.aspx):
 
 The rule:
 
@@ -129,10 +129,12 @@ TBD
 
 ## License
 
-TBD
+Copyright (c) 2012, Armin Sander All rights reserved.
 
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
+- Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+- Neither the name of Armin Sander nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
-
-
-
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ARMIN SANDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
