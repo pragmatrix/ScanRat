@@ -35,7 +35,7 @@ The generic combinators listed here can be applied to any parsing rule of any ty
 
 	is a production rule that parses two digits, not one, not zero not three.
 
-	Sequence combinators are left associative, which means that they are combined from left to right. The parsing result type of the `+` sequence combinator is a tuple that contains the parsing result of the left rule and the parsing right of the right production rule.
+	Sequence combinators are left associative, which means that they are combined from left to right. The parsing result type of the `+` sequence combinator is a tuple that contains the parsing result of the left rule and the parsing result of the right production rule.
 
 	The `+.` and `.+` sequence combinators can be used to only process the result of the rule that is placed at the side of the dot.
 
@@ -45,7 +45,7 @@ The generic combinators listed here can be applied to any parsing rule of any ty
 
 	Parses either left or right. If both rules match the input, the first rule is preferred. Both rules must be of the same result type.
 
-	The choice combinator is also left associative, but has a lower priority than the sequence combinators, which means that you can put sequences nicely inside the choice rules without using paranthesis:
+	The choice combinator is also left associative, but has a lower priority than the sequence combinators, which means that you can put sequences inside the choice rules without using paranthesis:
 
 		let driverDecision = accellerate + overtake |- driveSlowly
 
@@ -67,7 +67,7 @@ The string specific combinators are optimized to handle string based input.
 
 	defines a rule that parses the string "Hello".
 
-- `oneOf` Parses one character of a string. The rule's return type is character.
+- `oneOf` Parses one character of a string. The rule's return type is a character.
 
 		let oneOrTwo = oneOf "12"
 
@@ -75,8 +75,7 @@ The string specific combinators are optimized to handle string based input.
 
 		let oneOrTwo = (~~"1" |- ~~"2") --> fun str -> str.[0]
 
-	A parser for a digit that actually returns the integer value of a digit can
-be conventiently defined with `oneOf`:
+	To conveniently parse a digit and return the integer value of it, `oneOf` can be used like:
 
 		let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
 
@@ -87,7 +86,7 @@ Parsing is done by calling the `parse` function. Two arguments are required, the
 	let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
 	let r = parse digit "3"
 		
-The result of a parse is either a ParsingSuccess or a ParsingFailure
+The result of a parse is either `Success` or `Failure`:
 
 	match r with
 	| Success s -> s.value
@@ -103,9 +102,9 @@ Because a rule may need to be accessed before the point it has been defined, rec
 		<- digits + digit --> fun (a, b) -> a*10+b
  		|- digit
 
-Here the `production` function creates an initially named, but empty production rule. After that, the rule body can then be assigned to its `rule` property. This makes it possible for the rule body to refer back to the production and - like in this example - specify a left recursive rule to parse digits.
+Here the `production` function creates an initially named, but empty production rule. After that, the rule body can then be assigned to production's `rule` property. This makes it possible for the rule body to refer back to the production and - like in this example - specify a left recursive grammar that parses digits.
 
-## Complex Sequences
+## Parsing Sequences
 
 Tranforming more than three items with the `+` sequence combinators into an aggregate may get a bit annoying, because each new item generates a new tuple that contains the previous result type in its first type argument.
 
@@ -115,7 +114,7 @@ The rule:
 
 	let addressRule = nameGrammar + streetGrammar + cityGrammar + phoneGrammar --> fun (((name, street), city), phone) -> { Name = name; Street = street; City = city; Phone = phone }
 
-could also be defined by a much more readable
+may also be specified by a much more readable
 
 	parseq {
 		let! name = nameGrammar
@@ -128,6 +127,14 @@ could also be defined by a much more readable
 ## Error handling
 
 TBD
+
+## Acknowledges
+
+Thanks go to 
+
+- [Gordon Tishler](http://sourceforge.net/users/kulibali), the author of the [IronMeta project](http://ironmeta.sourceforge.net/), who implemented the core matching algorithm.
+
+- [Nicolaus Blumhardt](http://nblumhardt.com/) for the inspiring [Sprache parser combinators](https://github.com/sprache/sprache) I use in a lot of C# projects.
 
 ## License
 
