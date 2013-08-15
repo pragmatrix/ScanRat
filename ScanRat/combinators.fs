@@ -47,7 +47,7 @@ let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>=
     | None -> failure c.index
     | Some item -> downcast item
 
-let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
+let pSequence (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
     fun c -> 
         match memoParse p1 c with
         | Failure _ as f -> refail f
@@ -59,7 +59,7 @@ let pAnd (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
         success s1.index s2.next v
     |> mkParser (p1.name + "+" + p2.name)
         
-let pOr (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
+let pChoice (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
     fun c ->
         match memoParse p1 c with
         | Success _ as s -> s
@@ -113,11 +113,11 @@ type Parser<'resT>
     with
         static member (-->) (l, f) = pSelect l f 
 
-        static member (+) (l, r) = pAnd l r
-        static member (.+) (l, r) = pAnd l r --> fst
-        static member (+.) (l, r) = pAnd l r --> snd
+        static member (+) (l, r) = pSequence l r
+        static member (.+) (l, r) = pSequence l r --> fst
+        static member (+.) (l, r) = pSequence l r --> snd
 
-        static member (|-) (l, r) = pOr l r
+        static member (|-) (l, r) = pChoice l r
 
 (* and ultimately, the Builder *)
 
