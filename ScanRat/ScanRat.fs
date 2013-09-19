@@ -6,6 +6,8 @@ open System.Collections.Generic
 let inline (~~) (str:string) = pStr str
 
 let oneOf = pOneOf
+let matchFun (f: string -> int -> int) = pMatch f
+let matchChar (c:char) = matchFun (fun str i -> if str.[i] = c then 1 else 0) --> fun str -> str.[0]
 
 type ParsingError = ScanRatMatcher.ParsingError
 

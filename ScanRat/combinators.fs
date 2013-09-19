@@ -73,6 +73,18 @@ let private success_l index length value = success index (index+length) value
 
 let private quote str = "\"" + str + "\""
 
+let pMatch (f : string -> int -> int) =
+    fun (c : ParserContext) ->
+        let r = f c.text c.index
+        if (r <> 0) then
+            if c.index + r > c.text.Length then
+                failwithf "matched %d characters, but there were only %d left" r (c.text.Length - c.index)
+            let matched = c.text.Substring(c.index, r)
+            success_l c.index r matched
+        else
+            failure c.index
+    |> mkParser "*?"
+
 let pStr (str : string) : Parser<string> = 
     fun (c : ParserContext) ->
         if c.index + str.Length > c.text.Length then
