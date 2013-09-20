@@ -34,12 +34,14 @@ type Parser<'r>(name: string, resolver: unit -> ParseFunc<'r>) =
 let private mkParser name f = Parser(name, fun () -> f)
 
 let private failure index = Failure { ParseFailure.index = index }
+let private success index next value = Success { ParseSuccess.index = index; next = next; value = value }
+let private success_l index length value = success index (index+length) value
+
 let private refail result = 
     match result with
     | Failure f ->  Failure { ParseFailure.index = f.index }
     | _ -> failwith "can't refail on a success"
 
-let private success index next value = Success { ParseSuccess.index = index; next = next; value = value }
 
 let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>= 
     let res = memoCall c parser.name parser.parse
@@ -69,7 +71,22 @@ let pChoice (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
         | r2 -> r2
     |> mkParser (p1.name + "|" + p2.name)
 
-let private success_l index length value = success index (index+length) value
+let pButNot (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a> =
+    fun c ->
+        match memoParse p1 c with
+        | Failure _ as f -> f
+        | Success _ as s ->
+        match memoParse p2 c with
+        | Success s2 -> failure s2.index
+        | Failure _ -> s
+    |> mkParser (p1.name + "-" + p2.name)
+
+let pOpt (p : Parser<'a>) : Parser<'a option> =
+    fun c ->
+        match memoParse p c with
+        | Failure f -> success_l f.index 0 None
+        | Success s -> success s.index s.next (Some s.value)
+    |> mkParser ("[" + p.name + "]") 
 
 let private quote str = "\"" + str + "\""
 
@@ -107,7 +124,7 @@ let pOneOf (str : string) : Parser<char> =
                 success_l c.index 1 ch
             else
                 failure c.index
-    |> mkParser ("[" + str + "]")
+    |> mkParser ("one of " + quote str)
 
 // Convert a parse result.
 
@@ -119,6 +136,15 @@ let pSelect p f =
         | Failure f -> refail r
     |> mkParser p.name
 
+let pNot p = 
+    (fun c ->
+       let r = memoParse p c
+       match r with
+       | Success s -> failure s.index
+       | Failure f -> success_l f.index 0 ()
+    )
+    |> mkParser ("!" + p.name)
+
 (* Define some fancy operators!!! *)
 
 type Parser<'resT> 
@@ -129,7 +155,15 @@ type Parser<'resT>
         static member (.+) (l, r) = pSequence l r --> fst
         static member (+.) (l, r) = pSequence l r --> snd
 
+
         static member (|-) (l, r) = pChoice l r
+
+        static member (/) (l, r) = pButNot l r
+        static member (!!) r = pNot r
+        static member (+!) (l, r) = l .+ (pNot r)
+
+        member this.opt = pOpt this
+
 
 (* and ultimately, the Builder *)
 
