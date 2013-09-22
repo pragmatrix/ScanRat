@@ -26,7 +26,6 @@ type Parser<'r>(name: string, resolver: unit -> ParseFunc<'r>) =
     let _resolved = lazy (_mutableResolver());
 
     member this.parse with get() : ParseFunc<'r> = _resolved.Force()
-    member this.key with get() = this.parse :> Key
     member this.name with get () = name
 
     member this.rule with set(p: Parser<'r>) = _mutableResolver <- fun () -> p.parse
@@ -90,16 +89,16 @@ let pOpt (p : Parser<'a>) : Parser<'a option> =
 
 let private quote str = "\"" + str + "\""
 
-let pMatch (f : string -> int -> int) =
+let pMatch (f : string -> int -> int option) =
     fun (c : ParserContext) ->
         let r = f c.text c.index
-        if (r <> 0) then
+        match r with
+        | Some r ->
             if c.index + r > c.text.Length then
                 failwithf "matched %d characters, but there were only %d left" r (c.text.Length - c.index)
             let matched = c.text.Substring(c.index, r)
             success_l c.index r matched
-        else
-            failure c.index
+        | None -> failure c.index
     |> mkParser "*?"
 
 let pStr (str : string) : Parser<string> = 
@@ -115,6 +114,8 @@ let pStr (str : string) : Parser<string> =
     |> mkParser (quote str)
 
 let pOneOf (str : string) : Parser<char> =
+    if str = "" then
+        failwith "specify one or more characters for pOneOf"
     fun (c : ParserContext) ->
         if c.index + 1 > c.text.Length then
             failure c.index
