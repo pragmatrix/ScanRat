@@ -1,7 +1,8 @@
 ﻿module ScanRatMatcher
 
-open System;
-open System.Collections.Generic;
+open System
+open System.Collections.Generic
+open System.Linq
 
 type Dictionary<'k, 'v> with
     member this.TryFind key =
@@ -48,6 +49,7 @@ type LRRecord = {
     mutable lrDetected: bool; 
     mutable nextIndex: int; 
     mutable result: IItem option;
+    involved: HashSet<Key>;
     name : string;
     }
 
@@ -74,6 +76,9 @@ type ErrorRecord = {
     callStack: LRRecord list; }
 
 type ParsingError = { expected: string; stack: string seq }
+    with 
+        override this.ToString() =
+            this.expected
 
 type Memo = {
     table: MemoTable; 
@@ -124,6 +129,10 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
     match tryGetLRRecord memo expansion index with
     | Some record ->
         record.lrDetected <- true
+        
+        let involved = memo.callStack |> List.rev |> Seq.skipWhile (fun lr -> lr.expansion.key <> expansion.key) |> Seq.map(fun lr -> lr.expansion.key)
+        record.involved.UnionWith involved
+        
         match tryGetMemo memo record.expansion index with
         | None -> raise (MatcherException({ index = index; message = "Problem with expansion" }))
         | Some result -> 
@@ -141,7 +150,8 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
         expansion = recordExpansion; 
         nextIndex = -1; 
         result = None;
-        name = name }
+        name = name;
+        involved = new HashSet<Key>() }
 
     startLRRecord memo expansion index record
     memo.callStack <- record :: memo.callStack
@@ -170,7 +180,8 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
     forgetLRRecord memo expansion index
 
     // if there are no LR-processing rules at or above us in the stack, memoize
-    if not (Seq.exists (fun (r:LRRecord) -> r.lrDetected) memo.callStack) then
+    let found_lr = memo.callStack.Any(fun lr -> lr.involved.Contains expansion.key)
+    if not found_lr then
         memoize memo expansion index result
 
     if result.IsNone then

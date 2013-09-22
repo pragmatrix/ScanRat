@@ -16,7 +16,7 @@ type LogicalPerformanceTests() = class
         match r with
         | Failure _ -> Assert.Fail()
         | Success s ->
-            s.stats |> should equal [12;0;2]
+            s.stats |> should equal [10;1;2]
 
     [<Test>]
     member this.number2() =
@@ -24,7 +24,7 @@ type LogicalPerformanceTests() = class
         match r with
         | Failure _ -> Assert.Fail()
         | Success s ->
-            s.stats |> should equal [17;0;3]
+            s.stats |> should equal [15;1;3]
     
     [<Test>]
     member this.number3() =
@@ -32,7 +32,7 @@ type LogicalPerformanceTests() = class
         match r with
         | Failure _ -> Assert.Fail()
         | Success s ->
-            s.stats |> should equal [22;0;4]
+            s.stats |> should equal [20;1;4]
 
     [<Test>]
     member this.calculator() =
@@ -40,7 +40,7 @@ type LogicalPerformanceTests() = class
         match r with
         | Failure _ -> Assert.Fail()
         | Success s ->
-            s.stats |> should equal [353;0;58]
+            s.stats |> should equal [239;12;42]
 
     (* direct memoization *)
 
@@ -53,7 +53,7 @@ type LogicalPerformanceTests() = class
         match r with
         | Failure _ -> Assert.Fail()
         | Success s ->
-            s.stats.[1] |> should equal 1
+            s.stats.[1] |> should equal 2
 
     [<Test>]
     member this.directMemoizationStatDoesNotCaptureLeafs() =
@@ -64,8 +64,7 @@ type LogicalPerformanceTests() = class
         match r with
         | Failure _ -> Assert.Fail()
         | Success s ->
-            // only digits is treated as a memoization and the digits are then
-            // returned as a direct result
-            s.stats.[1] |> should equal 1
+            // only digits are memoized and are returned as a direct result
+            s.stats.[1] |> should equal 2
 
     end
