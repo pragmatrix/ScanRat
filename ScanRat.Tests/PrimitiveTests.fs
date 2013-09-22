@@ -96,6 +96,11 @@ type PrimitiveTests() = class
 
     [<Test>]
     member this.ParseDigits1() =
+        let r = parse digits "1"
+        valueOf r |> should equal 1
+
+    [<Test>]
+    member this.ParseDigits2() =
         let r = parse digits "123"
         valueOf r |> should equal 123
 
