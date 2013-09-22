@@ -7,7 +7,7 @@ open ScanRat
 open TestGrammars
 
 [<TestFixture>]
-type ParserTests() = class
+type CalculatorTests() = class
     
     let rec compute exp = 
         match exp with
