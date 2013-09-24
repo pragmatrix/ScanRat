@@ -1,4 +1,4 @@
-# ScanRat - PEG Parser Combinators for F# with support for Left Recursion
+# ScanRat - PEG Parser Combinators for F# with support for Left Recursion and Memoization
 
 ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts of the [FParsec](http://www.quanttec.com/fparsec/) and [Sprache](https://github.com/sprache/sprache) projects.
 
