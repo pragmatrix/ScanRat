@@ -7,7 +7,7 @@
 		<owners>pragmatrix</owners>
 		<projectUrl>https://github.com/pragmatrix/ScanRat</projectUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description>ScanRat - F# Parser Combinators with support for Left Recursion</description>
+		<description>ScanRat - F# Parser Combinators with support for Left Recursion and Memoization</description>
 		<tags>parser combinator F# generator parser-generator parser-combinator fsharp</tags>
 		<dependencies>
 		</dependencies>
