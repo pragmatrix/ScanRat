@@ -87,6 +87,46 @@ let pOpt (p : Parser<'a>) : Parser<'a option> =
         | Success s -> success s.index s.next (Some s.value)
     |> mkParser ("[" + p.name + "]") 
 
+let pList (p : Parser<'a>) : Parser<'a list> =
+    let unfolder c =
+        match memoParse p c with
+        | Failure f -> None
+        | Success s -> Some (s, c.at s.next)
+
+    let parseList c = 
+        Seq.unfold unfolder c 
+    
+    fun c ->
+        let successes = parseList c
+        let a = Seq.toArray successes
+        if a.Length = 0 then
+            failure c.index
+        else
+            let lastS = a.[a.Length-1]
+            success c.index (lastS.next) (a |> Array.map (fun s -> s.value) |> Array.toList)
+
+    |> mkParser ("[" + p.name + ",..\]") 
+
+let pMatchBack i (p : Parser<'a>) : Parser<'a> = 
+    if (i < 1) then
+        failwith "matchBack requires a positive integer as first argument"
+
+    fun (c : ParserContext) ->
+        if c.index < i then
+            failure c.index
+        else
+            let cb = c.at (c.index - i)
+            // note: we succeed or fail always at the current index, not at the matched one.
+            match memoParse p cb with
+            | Failure f -> failure c.index
+            | Success s -> 
+                if s.next <> c.index then
+                    failure c.index
+                else
+                    success_l c.index 0 s.value
+
+    |> mkParser ("@-" + i.ToString() + p.name)
+
 let private quote str = "\"" + str + "\""
 
 let pMatch (f : string -> int -> int option) =
@@ -156,15 +196,17 @@ type Parser<'resT>
         static member (.+) (l, r) = pSequence l r --> fst
         static member (+.) (l, r) = pSequence l r --> snd
 
-
         static member (|-) (l, r) = pChoice l r
 
         static member (/) (l, r) = pButNot l r
         static member (!!) r = pNot r
         static member (+!) (l, r) = l .+ (pNot r)
 
+        // zero or one (optional)
         member this.opt = pOpt this
 
+        // list (one or more)
+        member this.list = pList this
 
 (* and ultimately, the Builder *)
 

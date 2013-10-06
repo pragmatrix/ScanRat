@@ -11,6 +11,11 @@ let inline (~~) (str:string) = pStr str
 
 let oneOf = pOneOf
 
+// Match a number of characters before the current location
+// For example !!(matchBack 1 ~~"a") succeeds of no "a" was found at the previous character position 
+// Note that the rule must match all the characters up to the current location to be successful
+let matchBack = pMatchBack
+
 // Match the input string starting the given index and return the number of matched characters or None if no match. 
 // May pass index = string length, may return Some 0 to match zero characters.
 
