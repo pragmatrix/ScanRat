@@ -5,3 +5,5 @@ obj/
 /packages/
 *.nupkg
 *.ncrunchproject
+*.ncrunchsolution
+/_NCrunch_ScanRat/
