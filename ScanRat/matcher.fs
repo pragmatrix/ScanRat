@@ -129,25 +129,9 @@ let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -
     match tryGetLRRecord memo expansion index with
     | Some record ->
         record.lrDetected <- true
-        
-        (*
-            note: the original ironmeta implementation (as of 20131014) seems to grab too many involved productions in the call stack,
-            which increases the number of reevaluated productions for certain nested right / left nested grammars exponentially.
 
-            We change the algorithm to involve only the ones immediately after the latest expansion of a production with the same key. 
-            This results in a linear increase of productions invoked for additional nesting levels. 
-            
-            See test LogicalPerformanceTests.leftAndRightRecursiveNestedGrammar()
-
-            ironmeta:
-            let involved = memo.callStack |> List.rev |> Seq.skipWhile (fun lr -> lr.expansion.key <> expansion.key) |> Seq.map(fun lr -> lr.expansion.key)
-        *)
-
-        let involvedBefore = memo.callStack |> Seq.tryFindIndex (fun lr -> lr.expansion.key = expansion.key)
-
-        if involvedBefore.IsSome then
-            let involved = memo.callStack.Take involvedBefore.Value |> Seq.map(fun lr -> lr.expansion.key)
-            record.involved.UnionWith involved
+        let involved = memo.callStack.TakeWhile(fun lr -> lr.expansion.key <> expansion.key).Select(fun lr -> lr.expansion.key)
+        record.involved.UnionWith involved
         
         match tryGetMemo memo record.expansion index with
         | None -> raise (MatcherException({ index = index; message = "Problem with expansion" }))
