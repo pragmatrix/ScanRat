@@ -10,6 +10,28 @@ open TestGrammars
 [<TestFixture>]
 type LogicalPerformanceTests() = class
 
+    let leftAndRightRecursiveNestingGrammar = 
+        let identifier = (oneOf "abcdefghijklnmopqrstuvwxyz").oneOrMore
+        let exp = production("exp")
+        let addition = production("addition")        
+        
+        let primaryExp = production("primaryExp")
+        
+        exp.rule <- addition
+
+        addition.rule 
+            <- addition + ~~"+" + primaryExp --> fun _ -> ()
+            |- primaryExp
+
+        let property = identifier .+ ~~":" + addition
+        let objectLiteral = ~~"{" +. property.manySep(~~",") + ~~"}"
+
+        primaryExp.rule
+            <- digits --> fun _ -> ()
+            |- objectLiteral --> fun _ -> ()
+            
+        exp
+
     [<Test>]
     member this.number1() =
         let r = parse digits "1"
@@ -66,5 +88,26 @@ type LogicalPerformanceTests() = class
         | Success s ->
             // only digits are memoized and are returned as a direct result
             s.stats.[1] |> should equal 2
+
+    [<Test>]
+    member this.leftAndRightRecursiveNestedGrammar() =
+        let grammar = leftAndRightRecursiveNestingGrammar
+        let r1 = parse grammar "{a:10}"
+        let r2 = parse grammar "{a:{b:10}}"
+        let r3 = parse grammar "{a:{b:{c:10}}}"
+
+        match r1 with
+        | Failure _ -> Assert.Fail()
+        | Success s1 -> 
+            match r2 with
+            | Failure _ -> Assert.Fail()
+            | Success s2 -> 
+                match r3 with
+                | Failure _ -> Assert.Fail()
+                | Success s3 -> 
+                    let d1 = s2.stats.[0] - s1.stats.[0]
+                    let d2 = s3.stats.[0] - s2.stats.[0]
+                    // nesting should only have a linear effect on the production performance
+                    Assert.AreEqual(d1, d2)
 
     end
