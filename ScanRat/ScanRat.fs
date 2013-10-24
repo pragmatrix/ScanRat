@@ -19,19 +19,19 @@ let matchBack = pMatchBack
 // Match the input string starting the given index and return the number of matched characters or None if no match. 
 // May pass index = string length, may return Some 0 to match zero characters.
 
-let matchFun (f: string -> int -> int option) = pMatch f
+let matchFun name (f: string -> int -> int option) = pMatch name f
 
 // Match one character
 
-let matchCharFun (f: char -> bool) = 
+let matchCharFun name (f: char -> bool) = 
     let charMatcher (str:string) i = 
         match i with
         | i when i = str.Length -> None
         | i when f str.[i] -> Some 1
         | _ -> None
-    matchFun charMatcher --> fun str -> str.[0]
+    matchFun name charMatcher --> fun str -> str.[0]
 
-let matchChar c = matchCharFun ((=) c)
+let matchChar name c = matchCharFun name ((=) c)
 
 type ParsingError = ScanRatMatcher.ParsingError
 

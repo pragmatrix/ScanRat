@@ -165,7 +165,7 @@ let pMatchBack i (p : Parser<'a>) : Parser<'a> =
 
 let private quote str = "\"" + str + "\""
 
-let pMatch (f : string -> int -> int option) =
+let pMatch (name:string) (f : string -> int -> int option) =
     fun (c : ParserContext) ->
         let r = f c.text c.index
         match r with
@@ -175,7 +175,7 @@ let pMatch (f : string -> int -> int option) =
             let matched = c.text.Substring(c.index, r)
             success_l c.index r matched
         | None -> failure c.index
-    |> mkParser "*?"
+    |> mkParser name
 
 let pStr (str : string) : Parser<string> = 
     fun (c : ParserContext) ->
