@@ -35,7 +35,7 @@ let matchChar name c = matchCharFun name ((=) c)
 
 type ParsingError = ScanRatMatcher.ParsingError
 
-type ParsingSuccess<'v> = { consumed: int; value: 'v; stats: int list } 
+type ParsingSuccess<'v> = { consumed: int; value: 'v; stats: int list; lastErrorIndex: int; lastErrorExpectations: ParsingError list } 
 type ParsingFailure = { index: int; expectations: ParsingError list }
     with
         override this.ToString() =
@@ -54,14 +54,15 @@ let parsePartial parser str =
     | ScanRatMatcher.Success s -> 
         let stats = memo.stats
         Success { consumed = s.next; value = s.value; stats = 
-            [ stats.productions; stats.memo; stats.memoLR] }
+            [ stats.productions; stats.memo; stats.memoLR];
+            lastErrorIndex = memo.lastErrorPos; lastErrorExpectations = memo.lastError |> Seq.toList }
     | ScanRatMatcher.Failure f -> 
         Failure { index = memo.lastErrorPos; expectations = memo.lastError |> Seq.toList }
 
 let parse parser str = 
     let r = parsePartial parser str
     match r with
-    | Success s when s.consumed <> str.Length -> Failure { index = s.consumed; expectations = [{ expected = "end of input"; stack = []}]}
+    | Success s when s.consumed <> str.Length -> Failure { index = s.lastErrorIndex; expectations = s.lastErrorExpectations }
     | _ -> r
 
 let parseq = ParseSequenceBuilder()
