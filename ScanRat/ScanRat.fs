@@ -71,4 +71,7 @@ let production name =
     let failingResolver = fun () -> fun c -> ScanRatMatcher.Failure { index = 0 }
     Parser<'a>(name, failingResolver)
 
+let named name p =
+    pNamed p name
+
 type Parser<'a> = ScanRatCombinators.Parser<'a>

@@ -212,6 +212,10 @@ let pNot p =
     )
     |> mkParser ("!" + p.name)
 
+let pNamed (p:Parser<'a>) name = 
+    fun c -> memoParse p c
+    |> mkParser name
+
 (* Define some fancy operators!!! *)
 
 type Parser<'resT> 

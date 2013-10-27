@@ -42,6 +42,7 @@ type RuleTable = Dictionary<int, IItem option>
 type ExpansionTable = Dictionary<int, RuleTable>
 
 type MemoTable = Dictionary<Key, ExpansionTable>
+
 type Expansion = { key: Key; num : int }
 
 type LRRecord = {
