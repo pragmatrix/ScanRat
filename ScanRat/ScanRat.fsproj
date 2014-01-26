@@ -10,7 +10,7 @@
     <RootNamespace>ScanRat</RootNamespace>
     <AssemblyName>ScanRat</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>ScanRat</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
