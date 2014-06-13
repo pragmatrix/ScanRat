@@ -6,8 +6,8 @@ open ScanRatMatcher
 type ParserContext(index: int, text: string, memo: Memo) = 
     interface IParseContext
         with
-            member this.index with get() = index
-            member this.memo with get() = memo
+            member this.index = index
+            member this.memo = memo
 
     member this.index = index
     member this.text = text
@@ -25,8 +25,8 @@ type Parser<'r>(name: string, resolver: unit -> ParseFunc<'r>) =
     let mutable _mutableResolver = resolver;
     let _resolved = lazy (_mutableResolver());
 
-    member this.parse with get() : ParseFunc<'r> = _resolved.Force()
-    member this.name with get () = name
+    member this.parse : ParseFunc<'r> = _resolved.Force()
+    member this.name = name
 
     member this.rule with set(p: Parser<'r>) = _mutableResolver <- fun () -> p.parse
 

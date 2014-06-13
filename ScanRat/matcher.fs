@@ -114,8 +114,8 @@ type Memo = {
                 }
 
 type IParseContext =
-    abstract member memo : Memo with get
-    abstract member index : int with get
+    abstract member memo : Memo
+    abstract member index : int
 
 exception MatcherException of Error
 
