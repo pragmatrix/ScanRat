@@ -43,8 +43,10 @@ type ExpansionTable = Dictionary<int, RuleTable>
 
 type MemoTable = Dictionary<Key, ExpansionTable>
 
+[<NoComparison>]
 type Expansion = { key: Key; num : int }
 
+[<NoComparison>]
 type LRRecord = {
     mutable expansion: Expansion; 
     mutable lrDetected: bool; 
@@ -70,17 +72,19 @@ type Stats = {
         member this.trackMemo() = this.memo <- this.memo + 1
         member this.trackMemoLR() = this.memoLR <- this.memoLR + 1
 
-
+[<NoComparison>]
 type ErrorRecord = {
     key: Object
     expected: string;
     callStack: LRRecord list; }
 
+[<NoComparison>]
 type ParsingError = { expected: string; stack: string seq }
     with 
         override this.ToString() =
             this.expected
 
+[<NoComparison>]
 type Memo = {
     table: MemoTable; 
     recursions: LRTable;

@@ -3,28 +3,24 @@
 open ScanRatCombinators
 open System.Collections.Generic
 
-// Match a string
-
+/// Match a string
 let inline (~~) (str:string) = pStr str
 
-// Match one character out of a given string.
-
+/// Match one character out of a given string.
 let oneOf = pOneOf
 
-// Match a number of characters before the current location
-// For example !!(matchBack 1 ~~"a") succeeds of no "a" was found at the previous character position 
-// Note that the rule must match all the characters up to the current location to be successful
+/// Match a number of characters before the current location
+/// For example !!(matchBack 1 ~~"a") succeeds of no "a" was found at the previous character position 
+/// Note that the rule must match all the characters up to the current location to be successful
 let matchBack = pMatchBack
 
-// Match the input string starting the given index and return the number of matched characters or None if no match. 
-// May pass index = string length, may return Some 0 to match zero characters.
-
+/// Match the input string starting the given index and return the number of matched characters or None if no match. 
+/// May pass index = string length, may return Some 0 to match zero characters.
 let matchFun name (f: string -> int -> int option) = pMatch name f
 
 let matchEnd = pMatch "end" (fun str i -> if i = str.Length then Some 0 else None) --> ignore
 
-// Match one character
-
+/// Match one character
 let matchCharFun name (f: char -> bool) = 
     let charMatcher (str:string) i = 
         match i with
@@ -37,7 +33,10 @@ let matchChar name c = matchCharFun name ((=) c)
 
 type ParsingError = ScanRatMatcher.ParsingError
 
+[<NoComparison>]
 type ParsingSuccess<'v> = { consumed: int; value: 'v; stats: int list; lastErrorIndex: int; lastErrorExpectations: ParsingError list } 
+
+[<NoComparison>]
 type ParsingFailure = { index: int; expectations: ParsingError list }
     with
         override this.ToString() =
@@ -45,6 +44,7 @@ type ParsingFailure = { index: int; expectations: ParsingError list }
             | hd::tl -> this.index.ToString() + ": " + hd.ToString()
             | _ -> ""
 
+[<NoComparison>]
 type ParsingResult<'v> =
     | Success of ParsingSuccess<'v>
     | Failure of ParsingFailure

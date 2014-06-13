@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 13.00
+# Visual Studio 2013
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ScanRat", "ScanRat\ScanRat.fsproj", "{8FD7D789-18D7-45A4-8D66-F7D1C37B8D3F}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ScanRat.Tests", "ScanRat.Tests\ScanRat.Tests.fsproj", "{B924A3B9-30A5-4A84-8FAD-3DD711907E09}"
