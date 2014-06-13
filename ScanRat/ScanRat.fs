@@ -21,6 +21,8 @@ let matchBack = pMatchBack
 
 let matchFun name (f: string -> int -> int option) = pMatch name f
 
+let matchEnd = pMatch "end" (fun str i -> if i = str.Length then Some 0 else None) --> ignore
+
 // Match one character
 
 let matchCharFun name (f: char -> bool) = 

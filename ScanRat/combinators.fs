@@ -48,15 +48,17 @@ let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>=
     | None -> failure c.index
     | Some item -> downcast item
 
-// Convert a parse result.
+// Convert a parse result with index.
 
-let pSelect p f =
+let pSelectIndex p f =
     fun c ->
         let r = memoParse p c
         match r with
-        | Success s -> success s.index s.next (f s.value)
+        | Success s -> success s.index s.next (f (s.index, s.value))
         | Failure f -> refail r
     |> mkParser p.name
+
+let pSelect p f = pSelectIndex p (snd >> f)
 
 // Convert a parse result or fail
 
@@ -223,6 +225,7 @@ type Parser<'resT>
 
         static member (-->) (l, f) = pSelect l f 
         // static member (-->?) (l, f) = pSelect2 l f
+        static member (-->.) (l, f) = pSelectIndex l f
 
         static member (+) (l, r) = pSequence l r
         static member (.+) (l, r) = pSequence l r --> fst
