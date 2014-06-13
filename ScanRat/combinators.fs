@@ -206,12 +206,11 @@ let pOneOf (str : string) : Parser<char> =
     |> mkParser ("one of " + quote str)
 
 let pNot p = 
-    (fun c ->
-       let r = memoParse p c
-       match r with
-       | Success s -> failure s.index
-       | Failure f -> success_l f.index 0 ()
-    )
+    fun c ->
+        let r = memoParse p c
+        match r with
+        | Success s -> failure s.index
+        | Failure f -> success_l f.index 0 ()
     |> mkParser ("!" + p.name)
 
 let pNamed (p:Parser<'a>) name = 

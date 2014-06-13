@@ -5,7 +5,7 @@ open System.Collections.Generic
 open System.Linq
 
 type Dictionary<'k, 'v> with
-    member this.TryFind key =
+    member inline this.TryFind key =
         match this.TryGetValue key with
         | (true, v) -> Some v
         | (false, _) -> None

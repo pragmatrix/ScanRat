@@ -27,10 +27,14 @@ type PrimitiveTests() = class
             |- hello
         g
 
+    let butNotGrammar = 
+        (~~"Hello" +! (~~"Hello" + ~~"Builder"));
+
     let valueOf r =
         match r with
         | Success s -> s.value
         | Failure _ -> failwith "parse failed"
+
 
     [<Test>]
     member this.parseOr1() =
@@ -103,5 +107,14 @@ type PrimitiveTests() = class
     member this.ParseDigits2() =
         let r = parse digits "123"
         valueOf r |> should equal 123
+
+    [<Test>]
+    member this.partialButNotShouldNotAdvance() =
+        let r = parsePartial butNotGrammar "HelloHello"
+        match r with
+        | Success { value=value } ->
+            value |> should equal "Hello"
+        | Failure _ ->
+            failwith "parsing failed"
 
 end
