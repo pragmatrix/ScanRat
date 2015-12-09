@@ -1,10 +1,9 @@
 bin/
 obj/
-*.user
-*.suo
+/.vs/
 /packages/
+*.user
 *.nupkg
 *.ncrunchproject
 *.ncrunchsolution
 /_NCrunch_ScanRat/
-/.nuget/NuGet.exe
