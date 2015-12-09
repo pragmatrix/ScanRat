@@ -34,43 +34,6 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\ScanRat.Tests.XML</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FsUnit.NUnit">
-      <HintPath>..\packages\FsUnit.1.2.1.0\Lib\Net40\FsUnit.NUnit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="mscorlib" />
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="TestGrammars.fs" />
-    <Compile Include="PrimitiveTests.fs" />
-    <Compile Include="BuilderTests.fs" />
-    <Compile Include="CalculatorTests.fs" />
-    <Compile Include="EdgeCaseTests.fs" />
-    <Compile Include="ErrorHandlingTests.fs" />
-    <Compile Include="LogicalPerformanceTests.fs" />
-    <Compile Include="PerformanceTests.fs" />
-    <Compile Include="FSharpTests.fs" />
-    <None Include="app.config" />
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ScanRat\ScanRat.fsproj">
-      <Name>ScanRat</Name>
-      <Project>{8fd7d789-18d7-45a4-8d66-f7d1c37b8d3f}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -87,6 +50,46 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <ItemGroup>
+    <Compile Include="TestGrammars.fs" />
+    <Compile Include="PrimitiveTests.fs" />
+    <Compile Include="BuilderTests.fs" />
+    <Compile Include="CalculatorTests.fs" />
+    <Compile Include="EdgeCaseTests.fs" />
+    <Compile Include="ErrorHandlingTests.fs" />
+    <Compile Include="LogicalPerformanceTests.fs" />
+    <Compile Include="PerformanceTests.fs" />
+    <Compile Include="FSharpTests.fs" />
+    <None Include="app.config" />
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="FSharp.Core">
+      <HintPath>..\packages\FSharp.Core.4.0.0.1\lib\net40\FSharp.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FsUnit.NUnit">
+      <HintPath>..\packages\FsUnit.1.4.1.0\lib\net45\FsUnit.NUnit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="NHamcrest">
+      <HintPath>..\packages\FsUnit.1.4.1.0\lib\net45\NHamcrest.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\ScanRat\ScanRat.fsproj">
+      <Name>ScanRat</Name>
+      <Project>{8fd7d789-18d7-45a4-8d66-f7d1c37b8d3f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
