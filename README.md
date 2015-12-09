@@ -8,14 +8,14 @@ ScanRat is a mashup of the IronMeta PackRat parsing algorithm, and the concepts 
 - Direct and mutual left recursion as specified in the paper [Left Recursion in Parsing Expression Grammars](http://arxiv.org/pdf/1207.0443v1.pdf).
 - Computation Expressions to conventiently parse sequences (inspired by Sprache's LinQ SelectMany "hack").
 
-and soon
+and what's missing:
 
 - RegExp support
 - Source indices must be accessible inside the result generators (define an additional production operator?).
 
 ## Get Started
 
-To use ScanRat in Visual Studio, install the [NuGet package](https://www.nuget.org/packages/ScanRat/) or clone this repository and refer the `ScanRat/ScanRat.fsproj` project.
+To use ScanRat in Visual Studio, install the [NuGet package](https://www.nuget.org/packages/ScanRat/) or clone this repository and add the `ScanRat/ScanRat.fsproj` as a reference to your project.
 
 In your F# source file, add
 
