@@ -7,8 +7,8 @@ pushnuget: nuget
 	cd ScanRat && nuget push ${package}
 
 .PHONY: nuget
-nuget: build
-	cd ScanRat && nuget pack -Version ${version} ${id}.fsproj
+nuget: 
+	cd ScanRat && nuget pack -Version ${version} ${id}.fsproj -Prop Configuration=Release -Prop VisualStudioVersion=14.0
 
 MSB=msbuild.exe /m /verbosity:m /nologo
 
