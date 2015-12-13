@@ -45,7 +45,7 @@ The generic combinators listed here can be applied to any parsing rule of any ty
 
 	Parses either left or right. If both rules match the input, the first rule is preferred. Both rules must be of the same result type.
 
-	The choice combinator is also left associative, but has a lower priority than the sequence combinators, which means that you can put sequences inside the choice rules without using paranthesis:
+	The choice combinator is also left associative, but has a lower priority than the sequence combinators, which means that you can put sequences inside the choice rules without using parenthesis:
 
 		let driverDecision = accellerate + overtake |- driveSlowly
 
@@ -81,7 +81,7 @@ The string specific combinators are optimized to handle string based input.
 
 ## Parsing
 
-Parsing is done by calling the `parse` function. Two arguments are required, the first one is the grammar and the secone one is the input (a string for now).
+Parsing is done by calling the `parse` function. Two arguments are required, the first one is the grammar and the second one is the input (a string for now):
 
 	let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
 	let r = parse digit "3"
@@ -94,7 +94,7 @@ The result of a parse is either `Success` or `Failure`:
 
 ## Recursive parsing grammars
 
-Because a rule may need to be accessed before the point it has been defined, recursive rules are specified slightly different:
+Because a rule may need to be accessed before the point it has been defined, recursive rules are specified in a slightly different way:
 
 	let digit = oneOf "0123456789" --> fun d -> int(d) - int('0')
   	let digits = production "digits"
@@ -102,19 +102,19 @@ Because a rule may need to be accessed before the point it has been defined, rec
 		<- digits + digit --> fun (a, b) -> a*10+b
  		|- digit
 
-Here the `production` function creates an initially named, but empty production rule. After that, the rule body can then be assigned to production's `rule` property. This makes it possible for the rule body to refer back to the production and - like in this example - specify a left recursive grammar that parses digits.
+Here the `production` function creates an initially named but empty production rule. After that, the rule's term can then be assigned to production's `rule` property. This makes it possible for the term to refer back to the production and - like in this example - specify a left recursive grammar that parses digits.
 
 ## Parsing Sequences
 
-Tranforming more than three items with the `+` sequence combinators into an aggregate may get a bit annoying, because each new item generates a new tuple that contains the previous result type in its first type argument.
+Combining more than three items with the `+` sequence combinator may get a bit annoying, because each new item generates a new tuple that contains the previous result type as its first argument.
 
-So for more complex sequences, there is an alternative which makes use of [Computation Expressions](http://msdn.microsoft.com/en-us/library/dd233182.aspx):
+For longer sequences, there is an alternative which makes use of [Computation Expressions](http://msdn.microsoft.com/en-us/library/dd233182.aspx):
 
 The rule:
 
 	let addressRule = nameGrammar + streetGrammar + cityGrammar + phoneGrammar --> fun (((name, street), city), phone) -> { Name = name; Street = street; City = city; Phone = phone }
 
-may also be specified by a much more readable
+may also be specified by a much more readable and extensible:
 
 	parseq {
 		let! name = nameGrammar
@@ -131,11 +131,11 @@ TBD
 ## Limitations
 
 - If a direct left and right recursion is used in one rule, the algorithm incorrectly right-associates the parses [as noted by Laurence Tratt in his paper](http://tratt.net/laurie/research/pubs/papers/tratt__direct_left_recursive_parsing_expression_grammars.pdf).
-- The parsers that are built inside a computation expression can not be memoized, but the parsers they refer to, can. So it's recommended to refer to parsers from inside computation expressions.
+- The parsers that are built inside a computation expression can not be memoized, but the parsers they refer to, can. Therefore it's more efficient to refer to parsers from inside computation expressions instead of putting them inline.
 
 ## Acknowledges
 
-Thanks go to 
+Many thanks go to 
 
 - [Gordon Tishler](http://sourceforge.net/users/kulibali), the author of the [IronMeta project](http://ironmeta.sourceforge.net/), who implemented the core matching algorithm.
 
