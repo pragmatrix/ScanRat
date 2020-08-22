@@ -7,15 +7,9 @@ open FsUnit
 
 open System
 open System.Collections.Generic
-open System.Runtime.CompilerServices
 
 [<TestFixture>]
 type FSharpTests() = class
-
-    [<Test>]
-    member this.functionsCanNotBeCompared() =
-        let f = fun c -> 0
-        (f) |> should not' (equal f)
 
     [<Test>]
     member this.functionsCanBeComparedWhenCastToAnObject() =
@@ -33,4 +27,3 @@ type FSharpTests() = class
         r |> should equal true
 
 end
-

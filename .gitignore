@@ -2,6 +2,7 @@ bin/
 obj/
 /.vs/
 /packages/
+/.paket/
 *.user
 *.nupkg
 *.ncrunchproject
