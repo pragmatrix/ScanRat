@@ -1,16 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{3AA7D669-69D3-48E5-8107-0727A42EE079}"
 	ProjectSection(SolutionItems) = preProject
 		paket.dependencies = paket.dependencies
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ScanRat", "ScanRat\ScanRat.fsproj", "{8FD7D789-18D7-45A4-8D66-F7D1C37B8D3F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ScanRat", "ScanRat\ScanRat.fsproj", "{8FD7D789-18D7-45A4-8D66-F7D1C37B8D3F}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ScanRat.Tests", "ScanRat.Tests\ScanRat.Tests.fsproj", "{B924A3B9-30A5-4A84-8FAD-3DD711907E09}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "ScanRat.Tests", "ScanRat.Tests\ScanRat.Tests.fsproj", "{B924A3B9-30A5-4A84-8FAD-3DD711907E09}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{92794DCA-8F7A-4CAA-87A8-420BE4BD957C}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,5 +34,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {973B7442-5EFC-4F39-8C5E-8372A3AF05E8}
 	EndGlobalSection
 EndGlobal
