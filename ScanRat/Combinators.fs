@@ -4,18 +4,17 @@ open ScanRat.Matcher
 
 [<Sealed>]
 type ParserContext(index: int, text: string, memo: Memo) = 
-    interface IParseContext
-        with
-            member this.index = index
-            member this.memo = memo
+    interface IParseContext with
+        member _.Index = index
+        member _.Memo = memo
 
-    member this.index = index
-    member this.text = text
-    member this.at index =
-        ParserContext(index, this.text, (this :> IParseContext).memo)
+    member _.Index = index
+    member _.Text = text
+    member this.At index =
+        ParserContext(index, this.Text, (this :> IParseContext).Memo)
     
-    static member create(text: string) : ParserContext =
-        ParserContext(0, text, Memo.create())
+    static member Create(text: string) : ParserContext =
+        ParserContext(0, text, Memo.Create())
 
 type ParseFunc<'r> = ParserContext -> ParseResult<'r>
 
@@ -25,27 +24,31 @@ type Parser<'r>(name: string, resolver: unit -> ParseFunc<'r>) =
     let mutable _mutableResolver = resolver;
     let _resolved = lazy (_mutableResolver());
 
-    member this.parse : ParseFunc<'r> = _resolved.Force()
-    member this.name = name
+    member _.Parse : ParseFunc<'r> = _resolved.Force()
+    member _.Name = name
 
-    member this.rule with set(p: Parser<'r>) = _mutableResolver <- fun () -> p.parse
+    // fsharplint:disable-next-line
+    member _.rule with set(p: Parser<'r>) = _mutableResolver <- fun () -> p.Parse
 
-let private mkParser name f = Parser(name, fun () -> f)
+[<AutoOpen>]
+module private Private =
 
-let private failure index = Failure { ParseFailure.index = index }
-let private success index next value = Success { ParseSuccess.index = index; next = next; value = value }
-let private success_l index length value = success index (index+length) value
+    let mkParser name f = Parser(name, fun () -> f)
 
-let private refail result = 
-    match result with
-    | Failure f ->  Failure { ParseFailure.index = f.index }
-    | _ -> failwith "can't refail on a success"
+    let failure index = Failure { ParseFailure.Index = index }
+    let success index next value = Success { ParseSuccess.Index = index; Next = next; Value = value }
+    let successL index length value = success index (index+length) value
+
+    let refail result = 
+        match result with
+        | Failure f ->  Failure { ParseFailure.Index = f.Index }
+        | _ -> failwith "can't refail on a success"
 
 
 let memoParse (parser : Parser<'a>) (c : ParserContext) : ParseResult<'a>= 
-    let res = memoCall c parser.name parser.parse
+    let res = memoCall c parser.Name parser.Parse
     match res with
-    | None -> failure c.index
+    | None -> failure c.Index
     | Some item -> downcast item
 
 // Convert a parse result with index.
@@ -54,9 +57,9 @@ let pSelectIndex p f =
     fun c ->
         let r = memoParse p c
         match r with
-        | Success s -> success s.index s.next (f (s.index, s.value))
-        | Failure f -> refail r
-    |> mkParser p.name
+        | Success s -> success s.Index s.Next (f (s.Index, s.Value))
+        | Failure _f -> refail r
+    |> mkParser p.Name
 
 let pSelect p f = pSelectIndex p (snd >> f)
 
@@ -66,35 +69,35 @@ let pSelect2 p f =
     fun c ->
         let r = memoParse p c
         match r with
-        | Failure f -> refail r
+        | Failure _f -> refail r
         | Success s -> 
-            let fres = f s.value
-            match fres with
-            | None -> failure c.index
-            | Some v -> success s.index s.next v
-    |> mkParser p.name
+        let fres = f s.Value
+        match fres with
+        | None -> failure c.Index
+        | Some v -> success s.Index s.Next v
+    |> mkParser p.Name
 
 let pSequence (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a * 'b> =
     fun c -> 
         match memoParse p1 c with
         | Failure _ as f -> refail f
         | Success s1 ->
-        match c.at s1.next |> memoParse p2 with
-        | Failure f2 -> failure s1.index
+        match c.At s1.Next |> memoParse p2 with
+        | Failure f2 -> failure s1.Index
         | Success s2 -> 
-        let v = (s1.value, s2.value)
-        success s1.index s2.next v
-    |> mkParser (p1.name + "+" + p2.name)
+        let v = (s1.Value, s2.Value)
+        success s1.Index s2.Next v
+    |> mkParser (p1.Name + "+" + p2.Name)
         
 let pChoice (p1 : Parser<'a>) (p2 : Parser<'a>) : Parser<'a> =
     fun c ->
         match memoParse p1 c with
         | Success _ as s -> s
-        | r1 ->
+        | _r1 ->
         match memoParse p2 c with
         | Success _ as s -> s
         | r2 -> r2
-    |> mkParser (p1.name + "|" + p2.name)
+    |> mkParser (p1.Name + "|" + p2.Name)
 
 let pButNot (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a> =
     fun c ->
@@ -102,22 +105,22 @@ let pButNot (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a> =
         | Failure _ as f -> f
         | Success _ as s ->
         match memoParse p2 c with
-        | Success s2 -> failure s2.index
+        | Success s2 -> failure s2.Index
         | Failure _ -> s
-    |> mkParser (p1.name + "-" + p2.name)
+    |> mkParser (p1.Name + "-" + p2.Name)
 
 let pOpt (p : Parser<'a>) : Parser<'a option> =
     fun c ->
         match memoParse p c with
-        | Failure f -> success_l f.index 0 None
-        | Success s -> success s.index s.next (Some s.value)
-    |> mkParser ("[" + p.name + "]") 
+        | Failure f -> successL f.Index 0 None
+        | Success s -> success s.Index s.Next (Some s.Value)
+    |> mkParser ("[" + p.Name + "]") 
 
 let pMany (p : Parser<'a>) : Parser<'a list> =
     let unfolder c =
         match memoParse p c with
         | Failure f -> None
-        | Success s -> Some (s, c.at s.next)
+        | Success s -> Some (s, c.At s.Next)
 
     let parseList c = 
         Seq.unfold unfolder c 
@@ -125,93 +128,84 @@ let pMany (p : Parser<'a>) : Parser<'a list> =
     fun c ->
         let successes = parseList c
         let a = Seq.toArray successes
-        if a.Length = 0 then
-            success c.index c.index []
-        else
-            let lastS = a.[a.Length-1]
-            success c.index (lastS.next) (a |> Array.map (fun s -> s.value) |> Array.toList)
+        if a.Length = 0 
+        then success c.Index c.Index [] else
+        let lastS = a.[a.Length-1]
+        success c.Index (lastS.Next) (a |> Seq.map (fun s -> s.Value) |> Seq.toList)
 
-    |> mkParser ("[" + p.name + "..]") 
+    |> mkParser ("[" + p.Name + "..]") 
 
 let pMany2 (p : Parser<'a>) (sep: Parser<'b>) : Parser<'a list> =
     fun c ->
         match memoParse p c with
-        | Failure f -> success c.index c.index []
+        | Failure _f -> success c.Index c.Index []
         | Success first ->
-        let nextc = c.at first.next
+        let nextc = c.At first.Next
         let next = pSelect (pSequence sep p) snd
         match memoParse (pMany next) nextc with
-        | Failure f as res -> res
-        | Success s -> success c.index s.next (first.value :: s.value)
-    |> mkParser ("[" + p.name + sep.name + "..]")
+        | Failure _f as res -> res
+        | Success s -> success c.Index s.Next (first.Value :: s.Value)
+    |> mkParser ("[" + p.Name + sep.Name + "..]")
 
 let pMatchBack i (p : Parser<'a>) : Parser<'a> = 
     if (i < 1) then
         failwith "matchBack requires a positive integer as first argument"
 
     fun (c : ParserContext) ->
-        if c.index < i then
-            failure c.index
-        else
-            let cb = c.at (c.index - i)
-            // note: we succeed or fail always at the current index, not at the matched one.
-            match memoParse p cb with
-            | Failure f -> failure c.index
-            | Success s -> 
-                if s.next <> c.index then
-                    failure c.index
-                else
-                    success_l c.index 0 s.value
+        if c.Index < i then failure c.Index else
+        let cb = c.At (c.Index - i)
+        // note: we succeed or fail always at the current index, not at the matched one.
+        match memoParse p cb with
+        | Failure _f -> failure c.Index
+        | Success s -> 
+        if s.Next <> c.Index 
+        then failure c.Index
+        else successL c.Index 0 s.Value
 
-    |> mkParser ("@-" + i.ToString() + p.name)
+    |> mkParser ("@-" + i.ToString() + p.Name)
 
 let private quote str = "\"" + str + "\""
 
 let pMatch (name:string) (f : string -> int -> int option) =
     fun (c : ParserContext) ->
-        let r = f c.text c.index
+        let r = f c.Text c.Index
         match r with
+        | None -> failure c.Index
         | Some r ->
-            if c.index + r > c.text.Length then
-                failwithf "matched %d characters, but there were only %d left" r (c.text.Length - c.index)
-            let matched = c.text.Substring(c.index, r)
-            success_l c.index r matched
-        | None -> failure c.index
+        if c.Index + r > c.Text.Length then
+            failwithf "matched %d characters, but there were only %d left" r (c.Text.Length - c.Index)
+        let matched = c.Text.Substring(c.Index, r)
+        successL c.Index r matched
     |> mkParser name
 
 let pStr (str : string) : Parser<string> = 
     fun (c : ParserContext) ->
-        if c.index + str.Length > c.text.Length then
-            failure c.index
-        else
-            let extract = c.text.Substring(c.index, str.Length)
-            if str = extract then
-                success_l c.index str.Length str
-            else
-                failure c.index
+        if c.Index + str.Length > c.Text.Length 
+        then failure c.Index else
+        let extract = c.Text.Substring(c.Index, str.Length)
+        if str = extract 
+        then successL c.Index str.Length str
+        else failure c.Index
     |> mkParser (quote str)
 
 let pOneOf (str : string) : Parser<char> =
     if str = "" then
         failwith "specify one or more characters for pOneOf"
     fun (c : ParserContext) ->
-        if c.index + 1 > c.text.Length then
-            failure c.index
-        else
-            let ch = c.text.[c.index]
-            if str.IndexOf(ch) <> -1 then
-                success_l c.index 1 ch
-            else
-                failure c.index
+        if c.Index + 1 > c.Text.Length 
+        then failure c.Index else
+        let ch = c.Text.[c.Index]
+        if str.IndexOf(ch) <> -1 
+        then successL c.Index 1 ch
+        else failure c.Index
     |> mkParser ("one of " + quote str)
 
 let pNot p = 
     fun c ->
-        let r = memoParse p c
-        match r with
-        | Success s -> failure s.index
-        | Failure f -> success_l f.index 0 ()
-    |> mkParser ("!" + p.name)
+        match memoParse p c with
+        | Success s -> failure s.Index
+        | Failure f -> successL f.Index 0 ()
+    |> mkParser ("!" + p.Name)
 
 let pNamed (p:Parser<'a>) name = 
     fun c -> memoParse p c
@@ -219,52 +213,54 @@ let pNamed (p:Parser<'a>) name =
 
 (* Define some fancy operators!!! *)
 
-type Parser<'resT> 
-    with
+type Parser<'resT> with
+    static member (-->) (l, f) = pSelect l f 
+    // static member (-->?) (l, f) = pSelect2 l f
+    static member (-->.) (l, f) = pSelectIndex l f
 
-        static member (-->) (l, f) = pSelect l f 
-        // static member (-->?) (l, f) = pSelect2 l f
-        static member (-->.) (l, f) = pSelectIndex l f
+    static member (+) (l, r) = pSequence l r
+    static member (.+) (l, r) = pSequence l r --> fst
+    static member (+.) (l, r) = pSequence l r --> snd
 
-        static member (+) (l, r) = pSequence l r
-        static member (.+) (l, r) = pSequence l r --> fst
-        static member (+.) (l, r) = pSequence l r --> snd
+    static member (|-) (l, r) = pChoice l r
 
-        static member (|-) (l, r) = pChoice l r
+    static member (/) (l, r) = pButNot l r
+    static member (!!) r = pNot r
+    static member (+!) (l, r) = l .+ (pNot r)
 
-        static member (/) (l, r) = pButNot l r
-        static member (!!) r = pNot r
-        static member (+!) (l, r) = l .+ (pNot r)
+    // fsharplint:disable
 
-        // zero or one (optional)
-        member this.opt = pOpt this
+    // zero or one (optional)
+    member this.opt = pOpt this
 
-        // many (zero or more)
-        member this.many = pMany this
-        member this.manySep sep = pMany2 this sep
-        member this.oneOrMore = pSelect2 (pMany this) (fun l -> if l.Length = 0 then None else Some l)
-        member this.oneOrMoreSep sep = pSelect2 (pMany2 this sep) (fun l -> if l.Length = 0 then None else Some l)
+    // many (zero or more)
+    member this.many = pMany this
+    member this.manySep sep = pMany2 this sep
+    member this.oneOrMore = pSelect2 (pMany this) (fun l -> if l.Length = 0 then None else Some l)
+    member this.oneOrMoreSep sep = pSelect2 (pMany2 this sep) (fun l -> if l.Length = 0 then None else Some l)
+
+    // fsharplint:enable
 
 (* and ultimately, the Builder *)
 
 type ParseSequenceBuilder() = 
-    member this.Bind(p: Parser<'a>, cont : 'a -> Parser<'b>) : Parser<'b> =
+    member _.Bind(p: Parser<'a>, cont : 'a -> Parser<'b>) : Parser<'b> =
         fun c -> 
             match memoParse p c with
             | Failure _ as f -> refail f
-            | Success s1 as r1 -> 
-            let cnext = c.at s1.next
-            let v = s1.value
+            | Success s1 -> 
+            let cnext = c.At s1.Next
+            let v = s1.Value
             let pc = cont v
             let r2 = memoParse pc cnext
             match r2 with
-            | Failure f2 -> failure s1.index
+            | Failure _f2 -> failure s1.Index
             | Success s2 -> 
-                let next = if s2.next = 0 then s1.next else s2.next
-                success s1.index next s2.value
-        |> mkParser p.name
+                let next = if s2.Next = 0 then s1.Next else s2.Next
+                success s1.Index next s2.Value
+        |> mkParser p.Name
 
-    member this.Return(v) : Parser<'r> = 
-        fun c -> success 0 0 v
+    member _.Return(v) : Parser<'r> = 
+        fun _c -> success 0 0 v
         |> mkParser ""
         

@@ -15,6 +15,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{92794DCA-8F7A-4CAA-87A8-420BE4BD957C}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\dotnet-core.yml = .github\workflows\dotnet-core.yml
+		LICENSE = LICENSE
+		Makefile = Makefile
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global

@@ -89,7 +89,7 @@ Parsing is done by calling the `parse` function. Two arguments are required, the
 The result of a parse is either `Success` or `Failure`:
 
 	match r with
-	| Success s -> s.value
+	| Success s -> s.Value
 	| Failure f -> failwith "error"
 
 ## Recursive parsing grammars

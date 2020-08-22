@@ -19,8 +19,8 @@ type CalculatorTests() = class
 
     let computeFromResult result = 
         match result with
-        | Success s -> compute s.value
-        | Failure f -> failwith "can't compute, parsing failed"
+        | Success s -> compute s.Value
+        | Failure _f -> failwith "can't compute, parsing failed"
 
     let simpleCalc input = 
 
@@ -39,35 +39,35 @@ type CalculatorTests() = class
         parse precedenceCalcExpression input |> computeFromResult
 
     [<Test>]
-    member this.testCalcNum() =
+    member _.TestCalcNum() =
         simpleCalc "13" |> should equal 13
 
     [<Test>]
-    member this.testCalcPlus() =
+    member _.TestCalcPlus() =
         simpleCalc "1+2" |> should equal 3
 
     [<Test>]
-    member this.testCalcMinus() =
+    member _.TestCalcMinus() =
         simpleCalc "1-3" |> should equal -2
 
     [<Test>]
-    member this.testCalcPlusMinus() =
+    member _.TestCalcPlusMinus() =
         simpleCalc "1+3-2" |> should equal 2
 
     [<Test>]
-    member this.braces() =
+    member _.Braces() =
         simpleCalc "1+(3-2)" |> should equal 2
 
     [<Test>]
-    member this.precedenceCalc1() =
+    member _.PrecedenceCalc1() =
         precedenceCalc "1+3*2" |> should equal 7
 
     [<Test>]
-    member this.precedenceCalc2() =
+    member _.PrecedenceCalc2() =
         precedenceCalc "3-2*5+3*8+1" |> should equal 18
 
     [<Test>]
-    member this.precedenceCalc3() =
+    member _.PrecedenceCalc3() =
         precedenceCalc "3-2/2*5+3*8+1" |> should equal 23
 
     end

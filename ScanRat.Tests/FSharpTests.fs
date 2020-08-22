@@ -11,14 +11,14 @@ open System.Collections.Generic
 type FSharpTests() = class
 
     [<Test>]
-    member this.functionsCanBeComparedWhenCastToAnObject() =
-        let f = fun c -> 0
-        let fo = f :> System.Object
+    member _.FunctionsCanBeComparedWhenCastToAnObject() =
+        let f = fun _c -> 0
+        let fo = f :> obj
         fo |> should equal fo
 
     [<Test>]
-    member this.functionsCanBeIdentifiedInADictionaryWithReferenceEqualityWhenCastToObject() =
-        let f = fun c -> 0
+    member _.FunctionsCanBeIdentifiedInADictionaryWithReferenceEqualityWhenCastToObject() =
+        let f = fun _c -> 0
         let fo = f :> Object
         let d = new Dictionary<Object, unit>();
         d.Add(fo, ()) |> ignore;
