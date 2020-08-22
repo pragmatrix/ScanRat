@@ -1,7 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <Version>1.0.0</Version>
+    <Title>ScanRat - F# Parser Combinators with support for Left Recursion and Memoization.</Title>
+    <Description>ScanRat - F# Parser Combinators with support for Left Recursion and Memoization.</Description>
+    <Authors>Armin Sander</Authors>
+    <Copyright>(c) 2020 Armin Sander</Copyright>
+    <PackageProjectUrl>https://github.com/pragmatrix/ScanRat</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/pragmatrix/ScanRat.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RootNamespace>ScanRat</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Matcher.fs" />
