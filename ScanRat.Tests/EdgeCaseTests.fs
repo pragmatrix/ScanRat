@@ -1,9 +1,9 @@
-﻿namespace ScanRat.Tests.EdgeCaseTests
+﻿module ScanRat.Tests.EdgeCase
 
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
+open ScanRat.ScanRat
 
 [<TestFixture>]
 type EdgeCaseTests() = class
@@ -27,10 +27,9 @@ type EdgeCaseTests() = class
     // this is actually wrong, in this special case, the production above is handled right-associative
     // according to Tratt, the result should be ((1-2)-3)
     [<Test>]
-    member this.tratt51() =
-        let r = parse tratt51Grammar "1-2-3"
-        match r with
-        | Success s -> s.value |> should equal "(1-(2-3))"
+    member _.Tratt51() =
+        match parse tratt51Grammar "1-2-3" with
+        | Success s -> s.Value |> should equal "(1-(2-3))"
         | Failure f -> failwith "failed"
 
 end

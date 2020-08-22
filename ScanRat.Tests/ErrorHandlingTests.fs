@@ -1,9 +1,9 @@
-﻿namespace ScanRat.Tests.ErrorHandlingTests
+﻿module ScanRat.Tests.ErrorHandling
 
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
+open ScanRat.ScanRat
 
 [<TestFixture>]
 type ErrorHandlingTests() = class
@@ -23,38 +23,34 @@ type ErrorHandlingTests() = class
     let oneTwoOrOneOne = oneAndTwo |- ~~"one" + ~~"one"  --> fun (a, b) -> a + b
 
     [<Test>]
-    member this.expectedEndOfInput() =
-        let r = parse simpleGrammar "012"
-        match r with
+    member _.ExpectedEndOfInput() =
+        match parse simpleGrammar "012" with
         | Failure f -> 
-            f.index |> should equal 2
+            f.Index |> should equal 2
         | Success _ -> Assert.Fail()
 
     [<Test>]
-    member this.expectedSomethingElse() =
-        let r = parse oneAndTwo "onetwe"
-        match r with
+    member _.ExpectedSomethingElse() =
+        match parse oneAndTwo "onetwe" with
         | Failure f -> 
-            f.index |> should equal 3
-            f.expectations |> Seq.map (fun r -> r.expected) |> should equal ["\"two\""]
+            f.Index |> should equal 3
+            f.Expectations |> Seq.map (fun r -> r.Expected) |> should equal ["\"two\""]
         | Success _ -> Assert.Fail()
 
     [<Test>]
-    member this.expectedTwoOtherStrings() =
-        let r = parse oneTwoOrOneOne "onetwe"
-        match r with
+    member _.ExpectedTwoOtherStrings() =
+        match parse oneTwoOrOneOne "onetwe" with
         | Failure f -> 
-            f.index |> should equal 3
-            f.expectations |> Seq.map (fun r -> r.expected) |> should equal ["\"two\""; "\"one\""]
+            f.Index |> should equal 3
+            f.Expectations |> Seq.map (fun r -> r.Expected) |> should equal ["\"two\""; "\"one\""]
         | Success _ -> Assert.Fail()
 
     [<Test>]
-    member this.dontReportParentClausesAtTheSameIndex() =
+    member _.DontReportParentClausesAtTheSameIndex() =
         let p = ~~"one" |- ~~"two"
-        let r = parse  p "x"
-        match r with
+        match parse  p "x" with
         | Failure f ->
-            f.index |> should equal 0
-            f.expectations |> Seq.length |> should equal 2
+            f.Index |> should equal 0
+            f.Expectations |> Seq.length |> should equal 2
         | Success _ -> Assert.Fail()
     end

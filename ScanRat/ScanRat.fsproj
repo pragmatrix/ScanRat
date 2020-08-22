@@ -1,61 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{8fd7d789-18d7-45a4-8d66-f7d1c37b8d3f}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <Version>1.0.0</Version>
+    <Title>ScanRat - F# Parser Combinators with support for Left Recursion and Memoization.</Title>
+    <Description>ScanRat - F# Parser Combinators with support for Left Recursion and Memoization.</Description>
+    <Authors>Armin Sander</Authors>
+    <Copyright>(c) 2020 Armin Sander</Copyright>
+    <PackageProjectUrl>https://github.com/pragmatrix/ScanRat</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/pragmatrix/ScanRat.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <RootNamespace>ScanRat</RootNamespace>
-    <AssemblyName>ScanRat</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
-    <TargetProfile>netcore</TargetProfile>
-    <TargetFSharpCoreVersion>3.259.4.0</TargetFSharpCoreVersion>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Name>ScanRat</Name>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <Tailcalls>false</Tailcalls>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <WarningLevel>5</WarningLevel>
-    <DocumentationFile>bin\Debug\ScanRat.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <WarningLevel>5</WarningLevel>
-    <DocumentationFile>bin\Release\ScanRat.XML</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">12</MinimumVisualStudioVersion>
-  </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets" />
   <ItemGroup>
     <Compile Include="Matcher.fs" />
     <Compile Include="Combinators.fs" />
     <Compile Include="ScanRat.fs" />
+    <None Include="paket.references" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core">
-      <Name>FSharp.Core</Name>
-      <AssemblyName>FSharp.Core.dll</AssemblyName>
-      <HintPath>$(MSBuildExtensionsPath32)\..\Reference Assemblies\Microsoft\FSharp\.NETCore\$(TargetFSharpCoreVersion)\FSharp.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

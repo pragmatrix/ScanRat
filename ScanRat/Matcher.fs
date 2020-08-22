@@ -1,255 +1,282 @@
-﻿module ScanRatMatcher
+﻿module ScanRat.Matcher
 
 open System
 open System.Collections.Generic
 open System.Linq
 
-type Dictionary<'k, 'v> with
-    member inline this.TryFind key =
+// Performance: Define an struct option here
+[<Struct>]
+// fsharplint:disable-next-line
+type internal 'v opt = 
+    | Some of 'v
+    | None
+    member inline this.Value =
+        match this with
+        | Some v -> v
+        | None -> failwith "internal error (Value is None)"
+
+type internal Dictionary<'k, 'v> with
+    member inline internal this.TryFind key =
         match this.TryGetValue key with
         | (true, v) -> Some v
         | (false, _) -> None
 
-type ParseSuccess<'v> = { value: 'v; index: int; next: int }
+[<Struct>]
+type ParseSuccess<'v> = { 
+    Value: 'v 
+    Index: int 
+    Next: int 
+}
 
-type ParseFailure = { index: int }
+[<Struct>]
+type ParseFailure = { Index: int }
 
 type IItem =
-    abstract member next : int;
-    abstract member isSuccess : bool;
+    abstract member Next : int
+    abstract member IsSuccess : bool
 
 type ParseResult<'v> =
     | Success of ParseSuccess<'v>
     | Failure of ParseFailure
 
     interface IItem with
-        member this.next 
-            with get() =
-                match this with
-                | Success ps -> ps.next
-                | _ -> failwith "no next"
-        member this.isSuccess 
-            with get() =
-                match this with
-                | Success _ -> true
-                | _ -> false
+        member this.Next =
+            match this with
+            | Success ps -> ps.Next
+            | _ -> failwith "no next"
+        member this.IsSuccess =
+            match this with
+            | Success _ -> true
+            | _ -> false
    
-type Key = Object
+type Key = obj
 
-type Error = { message: string; index: int}
+[<Struct>]
+type Error = { 
+    Message: string
+    Index: int
+}
 
-type RuleTable = Dictionary<int, IItem option>
-type ExpansionTable = Dictionary<int, RuleTable>
+type internal RuleTable = Dictionary<int, IItem opt>
+type internal ExpansionTable = Dictionary<int, RuleTable>
 
-type MemoTable = Dictionary<Key, ExpansionTable>
+type internal MemoTable = Dictionary<Key, ExpansionTable>
+
+[<NoComparison; Struct>]
+type internal Expansion = {
+    Key: Key
+    Num : int 
+}
 
 [<NoComparison>]
-type Expansion = { key: Key; num : int }
+type internal LRRecord = {
+    mutable Expansion: Expansion
+    mutable LRDetected: bool
+    mutable NextIndex: int
+    mutable Result: IItem opt
+    Involved: HashSet<Key>
+    Name : string
+}
 
-[<NoComparison>]
-type LRRecord = {
-    mutable expansion: Expansion; 
-    mutable lrDetected: bool; 
-    mutable nextIndex: int; 
-    mutable result: IItem option;
-    involved: HashSet<Key>;
-    name : string;
-    }
-
-type RecordTable = Dictionary<int, LRRecord>
-type LRTable = Dictionary<Key, RecordTable>
+type internal RecordTable = Dictionary<int, LRRecord>
+type internal LRTable = Dictionary<Key, RecordTable>
 
 type Stats = {
-    // number of actual production calls
-    mutable productions: int;
-    // number of successful memo lookups
-    mutable memo: int;
-    // number of successful lr memo lookupos
-    mutable memoLR: int;
+    // Number of actual production calls
+    mutable Productions: int
+    // Number of successful memo lookups
+    mutable Memo: int
+    // Number of successful lr memo lookupos
+    mutable MemoLR: int
+} with 
+    member this.TrackProduction() = this.Productions <- this.Productions + 1
+    member this.TrackMemo() = this.Memo <- this.Memo + 1
+    member this.TrackMemoLR() = this.MemoLR <- this.MemoLR + 1
+
+[<NoComparison; Struct>]
+type internal ErrorRecord = {
+    Key: Object
+    Expected: string
+    CallStack: LRRecord list
+}
+
+[<NoComparison>]
+type ParsingError = { 
+    Expected: string
+    Stack: string seq 
+} with 
+    override this.ToString() =
+        this.Expected
+
+[<NoComparison>]
+type internal Memo = {
+    Table: MemoTable
+    Recursions: LRTable
+    mutable CallStack: LRRecord list
+    LastErrorRecords: List<ErrorRecord>
+    mutable LastErrorPos: int
+    Stats: Stats
+} with 
+    static member Create() = {
+        Table = new MemoTable()
+        Recursions = new LRTable()
+        CallStack = List.empty
+        LastErrorRecords = new List<_>()
+        LastErrorPos = -1
+        Stats = { 
+            Memo = 0
+            MemoLR = 0
+            Productions = 0 
+        }
     }
-    with 
-        member this.trackProduction() = this.productions <- this.productions + 1
-        member this.trackMemo() = this.memo <- this.memo + 1
-        member this.trackMemoLR() = this.memoLR <- this.memoLR + 1
+    member this.LastError : ParsingError seq =
+        let keys = new HashSet<_>()
+        seq {
+            for er in this.LastErrorRecords do
+                if not (keys.Contains er.Key) then
+                    yield { ParsingError.Expected = er.Expected; Stack = List.map (fun lr -> lr.Name) er.CallStack }
+                    List.iter (fun lr -> keys.Add(lr.Expansion.Key) |> ignore) er.CallStack
+                    keys.Add(er.Key) |> ignore
+        }
 
-[<NoComparison>]
-type ErrorRecord = {
-    key: Object
-    expected: string;
-    callStack: LRRecord list; }
-
-[<NoComparison>]
-type ParsingError = { expected: string; stack: string seq }
-    with 
-        override this.ToString() =
-            this.expected
-
-[<NoComparison>]
-type Memo = {
-    table: MemoTable; 
-    recursions: LRTable;
-    mutable callStack: LRRecord list;
-    lastErrorRecords: List<ErrorRecord>;
-    mutable lastErrorPos: int;
-    stats: Stats;
-    } 
-    with 
-        static member create() = {
-            table = new MemoTable(); 
-            recursions = new LRTable(); 
-            callStack = List.empty; 
-            lastErrorRecords = new List<_>();
-            lastErrorPos = -1;
-            stats = { memo = 0; memoLR = 0; productions = 0 }
-            }
-        member this.lastError 
-            with get() : ParsingError seq = 
-                let keys = new HashSet<_>()
-                seq {
-                    for er in this.lastErrorRecords do
-                        if not (keys.Contains er.key) then
-                            yield { ParsingError.expected = er.expected; stack = List.map (fun lr -> lr.name) er.callStack }
-                            List.iter (fun lr -> keys.Add(lr.expansion.key) |> ignore) er.callStack
-                            keys.Add(er.key) |> ignore
-                }
-
-type IParseContext =
-    abstract member memo : Memo
-    abstract member index : int
+type internal IParseContext =
+    abstract member Memo : Memo
+    abstract member Index : int
 
 exception MatcherException of Error
 
-let rec memoCall (context:'c :> IParseContext) (name: string) (production : 'c -> 'r :> IItem) : (IItem option) =
-    let memo = context.memo
-    let index = context.index
+let rec internal memoCall (context: 'c :> IParseContext) (name: string) (production : 'c -> 'r :> IItem) : (IItem opt) =
+    let memo = context.Memo
+    let index = context.Index
     let key = production :> Key
-    let expansion = { key = key; num = 0 }
+    let expansion = { Key = key; Num = 0 }
 
     match tryGetMemo memo expansion index with
     | Some result -> 
-        memo.stats.trackMemo()
+        memo.Stats.TrackMemo()
         result
     | _ ->
 
     match tryGetLRRecord memo expansion index with
     | Some record ->
-        record.lrDetected <- true
+        record.LRDetected <- true
 
-        let involved = memo.callStack.TakeWhile(fun lr -> lr.expansion.key <> expansion.key).Select(fun lr -> lr.expansion.key)
-        record.involved.UnionWith involved
+        let involved = memo.CallStack.TakeWhile(fun lr -> lr.Expansion.Key <> expansion.Key).Select(fun lr -> lr.Expansion.Key)
+        record.Involved.UnionWith involved
         
-        match tryGetMemo memo record.expansion index with
-        | None -> raise (MatcherException({ index = index; message = "Problem with expansion" }))
+        match tryGetMemo memo record.Expansion index with
+        | None -> raise (MatcherException({ Index = index; Message = "Problem with expansion" }))
         | Some result -> 
-            memo.stats.trackMemoLR()
+            memo.Stats.TrackMemoLR()
             result
     | None ->
 
     // no lr information
 
-    let recordExpansion = { expansion with num = 1 }
+    let recordExpansion = { expansion with Num = 1 }
     memoize memo recordExpansion index None
 
     let record = { 
-        LRRecord.lrDetected = false; 
-        expansion = recordExpansion; 
-        nextIndex = -1; 
-        result = None;
-        name = name;
-        involved = new HashSet<Key>() }
+        LRRecord.LRDetected = false
+        Expansion = recordExpansion
+        NextIndex = -1
+        Result = None
+        Name = name
+        Involved = new HashSet<Key>() 
+    }
 
     startLRRecord memo expansion index record
-    memo.callStack <- record :: memo.callStack
+    memo.CallStack <- record :: memo.CallStack
 
-    let rec resolveItem() : IItem option = 
+    let rec resolveItem() : IItem opt= 
 
         // printf "%d %d %s\n" context.index record.expansion.num name
         let pResult = production context :> IItem
-        memo.stats.trackProduction()
+        memo.Stats.TrackProduction()
 
-        let result = if pResult.isSuccess then (Some pResult) else None
+        let result = if pResult.IsSuccess then (Some pResult) else None
         // do we need to keep trying the expansions?
         
-        if record.lrDetected && result.IsSome && result.Value.next > record.nextIndex then
-            record.expansion <- { expansion with num = record.expansion.num + 1 }
-            record.nextIndex <- result.Value.next
-            memoize memo record.expansion index result
-            record.result <- result
+        if record.LRDetected && result <> None && result.Value.Next > record.NextIndex then
+            record.Expansion <- { expansion with Num = record.Expansion.Num + 1 }
+            record.NextIndex <- result.Value.Next
+            memoize memo record.Expansion index result
+            record.Result <- result
             resolveItem()
         else
             // we are done trying to expand
-            if record.lrDetected then record.result else result
+            if record.LRDetected then record.Result else result
 
     let result = resolveItem()
 
-    memo.callStack <- memo.callStack.Tail
+    memo.CallStack <- memo.CallStack.Tail
     forgetLRRecord memo expansion index
 
     // if there are no LR-processing rules at or above us in the stack, memoize
-    let found_lr = memo.callStack.Any(fun lr -> lr.involved.Contains expansion.key)
-    if not found_lr then
+    let foundLR = memo.CallStack.Any(fun lr -> lr.Involved.Contains expansion.Key)
+    if not foundLR then
         memoize memo expansion index result
     //else
         //printf "%d %s: can't memoize, because of lr above\n" index name
 
-    if result.IsNone then
-        addError memo index { key = key; expected = name; callStack = memo.callStack }
+    if result = None then
+        addError memo index { Key = key; Expected = name; CallStack = memo.CallStack }
 
     result
 
 
-and tryGetMemo memo expansion index : (IItem option option) =
-    match memo.table.TryFind expansion.key with
+and internal tryGetMemo memo expansion index : (IItem opt opt) =
+    match memo.Table.TryFind expansion.Key with
     | None -> None
     | Some expansionDict ->
-    match expansionDict.TryFind expansion.num with
+    match expansionDict.TryFind expansion.Num with
     | None -> None
     | Some ruleDict -> ruleDict.TryFind index
 
-and tryGetLRRecord memo expansion index =
-    match memo.recursions.TryFind expansion.key with
+and internal tryGetLRRecord memo expansion index =
+    match memo.Recursions.TryFind expansion.Key with
     | None -> None
     | Some recordDict -> recordDict.TryFind index
 
-and memoize memo expansion index (item : IItem option) =
+and internal memoize memo expansion index (item : IItem opt) =
     let expansionDict = 
-        match memo.table.TryFind expansion.key with
+        match memo.Table.TryFind expansion.Key with
         | Some expansionDict -> expansionDict
         | None -> 
-            let dict = new ExpansionTable()
-            memo.table.Add(expansion.key, dict)
-            dict
+        let dict = new ExpansionTable()
+        memo.Table.Add(expansion.Key, dict)
+        dict
 
     let ruleDict = 
-        match expansionDict.TryFind expansion.num with
+        match expansionDict.TryFind expansion.Num with
         | Some ruleDict -> ruleDict
         | None ->
-            let ruleDict = new RuleTable()
-            expansionDict.Add(expansion.num, ruleDict)
-            ruleDict
+        let ruleDict = new RuleTable()
+        expansionDict.Add(expansion.Num, ruleDict)
+        ruleDict
 
     ruleDict.[index] <- item
 
-and startLRRecord memo expansion index record =
+and internal startLRRecord memo expansion index record =
     let recordDict = 
-        match memo.recursions.TryFind expansion.key with
+        match memo.Recursions.TryFind expansion.Key with
         | Some recordDict -> recordDict
         | None -> 
-            let rdict = new RecordTable()
-            memo.recursions.Add(expansion.key, rdict)
-            rdict
+        let rdict = new RecordTable()
+        memo.Recursions.Add(expansion.Key, rdict)
+        rdict
 
     recordDict.[index] <- record
 
-and forgetLRRecord memo expansion index =
-    match memo.recursions.TryFind expansion.key with
+and internal forgetLRRecord memo expansion index =
+    match memo.Recursions.TryFind expansion.Key with
     | Some recordDict -> recordDict.Remove index |> ignore
     | None -> ()
       
-and addError memo pos error =
-    if pos > memo.lastErrorPos then
-        memo.lastErrorRecords.Clear()
+and internal addError memo pos error =
+    if pos > memo.LastErrorPos then
+        memo.LastErrorRecords.Clear()
 
-    if pos >= memo.lastErrorPos then
-        memo.lastErrorRecords.Add(error)
-        memo.lastErrorPos <- pos
+    if pos >= memo.LastErrorPos then
+        memo.LastErrorRecords.Add(error)
+        memo.LastErrorPos <- pos

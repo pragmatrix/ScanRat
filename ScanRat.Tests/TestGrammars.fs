@@ -1,6 +1,6 @@
-﻿module TestGrammars
+﻿module ScanRat.Tests.Grammars
 
-open ScanRat
+open ScanRat.ScanRat
 
 let digit = oneOf "0123456789" --> fun d -> int(d) - int('0')
 
@@ -48,16 +48,16 @@ let precedenceCalcExpression =
 let twoDigitNumber = digit + digit --> fun (digit1, digit2) -> digit1 * 10 + digit2
 let hello = ~~"Hello"
 let oneOrTwo = oneOf "12"
-let _ =
-    let oneOrTwo = (~~"1" |- ~~"2") --> fun str -> str.[0]
-    ()
+let oneOrTwoAlt = (~~"1" |- ~~"2") --> fun str -> str.[0]
 
-let _ =
+do 
     let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
     let r = parse digit "3"
     match r with
-    | Success s -> s.value
-    | Failure f -> failwith "error"
+    | Success s -> s.Value
+    | Failure _f -> failwith "error"
+    
+    |> ignore
     
 
 

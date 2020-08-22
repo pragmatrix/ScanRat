@@ -3,9 +3,8 @@
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
-open TestGrammars
-
+open ScanRat.ScanRat
+open ScanRat.Tests.Grammars
 
 [<TestFixture>]
 type PrimitiveTests() = class
@@ -32,87 +31,87 @@ type PrimitiveTests() = class
 
     let valueOf r =
         match r with
-        | Success s -> s.value
+        | Success s -> s.Value
         | Failure _ -> failwith "parse failed"
 
 
     [<Test>]
-    member this.parseOr1() =
+    member _.ParseOr1() =
         let r = parse orGrammar "Hello"
         valueOf r |> should equal "Hello"
 
     [<Test>]
-    member this.parseOr2() =
+    member _.ParseOr2() =
         let r = parse orGrammar "World"
         valueOf r |> should equal "World"
 
     [<Test>]
-    member this.parseOrF() =
+    member _.ParseOrF() =
         let r = parse orGrammar "W"
         match r with
-        | Success s -> failwith "should not succeed"
-        | Failure f -> ()
+        | Success _s -> failwith "should not succeed"
+        | Failure _f -> ()
 
     [<Test>]
-    member this.parsePartial() =
+    member _.ParsePartial() =
         let r = parsePartial orGrammar "HelloWorld"
         valueOf r |> should equal "Hello"
 
     [<Test>]
-    member this.ParseAnd2() =
+    member _.ParseAnd2() =
         let r = parse andGrammar "HelloWorld"
         valueOf r |> should equal ("Hello", "World")
 
     [<Test>]
-    member this.ParsePrecendence1() =
+    member _.ParsePrecendence1() =
         let r = parse helloOrWorldBuilder "Hello"
         valueOf r |> should equal "Hello"
 
     [<Test>]
-    member this.ParsePrecendence2() =
+    member _.ParsePrecendence2() =
         let r = parse helloOrWorldBuilder "WorldBuilder"
         valueOf r |> should equal "WorldBuilder"
 
     [<Test>]
-    member this.ParsePrecendence3() =
+    member _.ParsePrecendence3() =
         let r = parsePartial helloOrWorldBuilder "HelloWorldBuilder"
         valueOf r |> should equal "Hello"
 
     [<Test>]
-    member this.ParsePrecendence4() =
+    member _.ParsePrecendence4() =
         let r = parsePartial helloOrWorldBuilder "HelloWorld"
         valueOf r |> should equal "Hello"
 
     [<Test>]
-    member this.ParseImmediateLR() =
+    member _.ParseImmediateLR() =
         let r = parse lrGrammar "HelloHello"
         valueOf r |> should equal "HelloHello"
 
     [<Test>]
-    member this.ParseImmediateLR1() =
+    member _.ParseImmediateLR1() =
         let r = parse lrGrammar "Hello"
         valueOf r |> should equal "Hello"
 
     [<Test>]
-    member this.ParseImmediateLR3() =
+    member _.ParseImmediateLR3() =
         let r = parse lrGrammar "HelloHelloHello"
         valueOf r |> should equal "HelloHelloHello"
 
     [<Test>]
-    member this.ParseDigits1() =
+    member _.ParseDigits1() =
         let r = parse digits "1"
         valueOf r |> should equal 1
 
     [<Test>]
-    member this.ParseDigits2() =
+    member _.ParseDigits2() =
         let r = parse digits "123"
         valueOf r |> should equal 123
 
     [<Test>]
-    member this.partialButNotShouldNotAdvance() =
+    member _.PartialButNotShouldNotAdvance() =
         let r = parsePartial butNotGrammar "HelloHello"
         match r with
-        | Success { value=value } ->
+        | Success { Value = value } ->
             value |> should equal "Hello"
         | Failure _ ->
             failwith "parsing failed"

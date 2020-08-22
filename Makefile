@@ -1,18 +1,18 @@
 id=ScanRat
-version=0.5.0.0
-package=${id}.${version}.nupkg
 
-.PHONY: pushnuget
-pushnuget: nuget
-	cd ScanRat && nuget push ${package}
+.PHONY: publish
+publish: package
+	dotnet nuget push --api-key ${NUGETAPIKEY} --source https://api.nuget.org/v3/index.json tmp/*.nupkg 
 
-.PHONY: nuget
-nuget: 
-	cd ScanRat && nuget pack -Version ${version} ${id}.fsproj -Prop Configuration=Release -Prop VisualStudioVersion=14.0
+.PHONY: package
+package: rebuild
+	mkdir -p tmp
+	rm -f tmp/*.nupkg
+	dotnet clean -c Release
+	cd ScanRat && dotnet pack -c Release -o ../tmp
 
-MSB=msbuild.exe /m /verbosity:m /nologo
-
-.PHONY: build
-build:
-	${MSB} ScanRat.sln /p:Configuration=Release /t:"ScanRat:Rebuild"
+.PHONY: rebuild
+rebuild:
+	dotnet clean -c Release
+	dotnet build -c Release ScanRat.sln
 

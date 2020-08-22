@@ -21,7 +21,7 @@ To use ScanRat in Visual Studio, install the [NuGet package](https://www.nuget.o
 
 In your F# source file, add
 
-	open ScanRat
+	open ScanRat.ScanRat
 
 and start writing grammars. A grammar is specified as a collection of production rules. The rules are build from a number of combinators.
 
@@ -85,11 +85,11 @@ Parsing is done by calling the `parse` function. Two arguments are required, the
 
 	let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
 	let r = parse digit "3"
-		
+
 The result of a parse is either `Success` or `Failure`:
 
 	match r with
-	| Success s -> s.value
+	| Success s -> s.Value
 	| Failure f -> failwith "error"
 
 ## Recursive parsing grammars
@@ -143,12 +143,4 @@ Many thanks go to
 
 ## License
 
-Copyright (c) 2013, Armin Sander All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-- Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-- Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-- Neither the name of Armin Sander nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL ARMIN SANDER BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+[MIT](LICENSE)

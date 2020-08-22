@@ -2,8 +2,13 @@ bin/
 obj/
 /.vs/
 /packages/
+/.fake
+/.ionide
 *.user
 *.nupkg
 *.ncrunchproject
 *.ncrunchsolution
 /_NCrunch_ScanRat/
+/global.json
+/tmp/
+
