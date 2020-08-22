@@ -2,7 +2,6 @@ bin/
 obj/
 /.vs/
 /packages/
-/.paket/
 /.fake
 /.ionide
 *.user
