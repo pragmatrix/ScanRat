@@ -1,6 +1,5 @@
-﻿namespace ScanRat.Tests.FSharpTests
-
-(* Tests that clarify assumptions made about the F# language *)
+﻿/// Tests that clarify assumptions made about the F# language.
+module ScanRat.Tests.FSharp
 
 open NUnit.Framework
 open FsUnit

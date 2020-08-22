@@ -1,11 +1,10 @@
-﻿namespace ScanRat.Tests.LogicalPerformanceTests
+﻿module ScanRat.Tests.LogicalPerformance
 
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
-
-open TestGrammars
+open ScanRat.ScanRat
+open ScanRat.Tests.Grammars
 
 [<TestFixture>]
 type LogicalPerformanceTests() = class

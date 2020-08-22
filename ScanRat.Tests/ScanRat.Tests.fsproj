@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Library</OutputType>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RootNamespace>ScanRat.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="TestGrammars.fs" />

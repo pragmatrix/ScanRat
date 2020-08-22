@@ -3,9 +3,8 @@
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
-open TestGrammars
-
+open ScanRat.ScanRat
+open ScanRat.Tests.Grammars
 
 [<TestFixture>]
 type PrimitiveTests() = class

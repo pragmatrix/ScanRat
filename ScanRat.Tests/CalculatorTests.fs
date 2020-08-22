@@ -1,10 +1,10 @@
-﻿namespace ScanRat.Tests
+﻿module ScanRat.Tests.Calculator
 
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
-open TestGrammars
+open ScanRat.ScanRat
+open ScanRat.Tests.Grammars
 
 [<TestFixture>]
 type CalculatorTests() = class

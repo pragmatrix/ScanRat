@@ -1,9 +1,9 @@
-﻿namespace ScanRat.Tests
+﻿module ScanRat.Tests.Builder
 
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
+open ScanRat.ScanRat
 
 [<TestFixture>]
 type BuilderTests() =

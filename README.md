@@ -21,7 +21,7 @@ To use ScanRat in Visual Studio, install the [NuGet package](https://www.nuget.o
 
 In your F# source file, add
 
-	open ScanRat
+	open ScanRat.ScanRat
 
 and start writing grammars. A grammar is specified as a collection of production rules. The rules are build from a number of combinators.
 
@@ -85,7 +85,7 @@ Parsing is done by calling the `parse` function. Two arguments are required, the
 
 	let digit = oneOf "0123456789" --> fun c -> int(c) - int('0')
 	let r = parse digit "3"
-		
+
 The result of a parse is either `Success` or `Failure`:
 
 	match r with

@@ -1,4 +1,4 @@
-﻿module ScanRatMatcher
+﻿module ScanRat.Matcher
 
 open System
 open System.Collections.Generic
@@ -10,7 +10,11 @@ type Dictionary<'k, 'v> with
         | (true, v) -> Some v
         | (false, _) -> None
 
-type ParseSuccess<'v> = { value: 'v; index: int; next: int }
+type ParseSuccess<'v> = { 
+    value: 'v 
+    index: int 
+    next: int 
+}
 
 type ParseFailure = { index: int }
 

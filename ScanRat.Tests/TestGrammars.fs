@@ -1,6 +1,6 @@
-﻿module TestGrammars
+﻿module ScanRat.Tests.Grammars
 
-open ScanRat
+open ScanRat.ScanRat
 
 let digit = oneOf "0123456789" --> fun d -> int(d) - int('0')
 

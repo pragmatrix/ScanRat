@@ -1,9 +1,8 @@
-﻿module PerformanceTests
+﻿module ScanRat.Tests.Performance
 
-open ScanRat
-open TestGrammars
 open System
-
+open ScanRat.ScanRat
+open ScanRat.Tests.Grammars
 
 open FsUnit
 open NUnit.Framework

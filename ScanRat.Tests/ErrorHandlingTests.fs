@@ -1,9 +1,9 @@
-﻿namespace ScanRat.Tests.ErrorHandlingTests
+﻿module ScanRat.Tests.ErrorHandling
 
 open NUnit.Framework
 open FsUnit
 
-open ScanRat
+open ScanRat.ScanRat
 
 [<TestFixture>]
 type ErrorHandlingTests() = class
