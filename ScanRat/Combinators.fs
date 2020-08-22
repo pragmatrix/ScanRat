@@ -3,7 +3,7 @@
 open ScanRat.Matcher
 
 [<Sealed>]
-type ParserContext(index: int, text: string, memo: Memo) = 
+type ParserContext internal (index: int, text: string, memo: Memo) = 
     interface IParseContext with
         member _.Index = index
         member _.Memo = memo
@@ -65,7 +65,7 @@ let pSelect p f = pSelectIndex p (snd >> f)
 
 // Convert a parse result or fail
 
-let pSelect2 p f =
+let internal pSelect2 p f =
     fun c ->
         let r = memoParse p c
         match r with
@@ -112,15 +112,15 @@ let pButNot (p1 : Parser<'a>) (p2 : Parser<'b>) : Parser<'a> =
 let pOpt (p : Parser<'a>) : Parser<'a option> =
     fun c ->
         match memoParse p c with
-        | Failure f -> successL f.Index 0 None
-        | Success s -> success s.Index s.Next (Some s.Value)
+        | Failure f -> successL f.Index 0 option.None
+        | Success s -> success s.Index s.Next (option.Some s.Value)
     |> mkParser ("[" + p.Name + "]") 
 
 let pMany (p : Parser<'a>) : Parser<'a list> =
     let unfolder c =
         match memoParse p c with
-        | Failure f -> None
-        | Success s -> Some (s, c.At s.Next)
+        | Failure _f -> option.None
+        | Success s -> option.Some (s, c.At s.Next)
 
     let parseList c = 
         Seq.unfold unfolder c 
@@ -168,10 +168,9 @@ let private quote str = "\"" + str + "\""
 
 let pMatch (name:string) (f : string -> int -> int option) =
     fun (c : ParserContext) ->
-        let r = f c.Text c.Index
-        match r with
-        | None -> failure c.Index
-        | Some r ->
+        match f c.Text c.Index with
+        | option.None -> failure c.Index
+        | option.Some r ->
         if c.Index + r > c.Text.Length then
             failwithf "matched %d characters, but there were only %d left" r (c.Text.Length - c.Index)
         let matched = c.Text.Substring(c.Index, r)

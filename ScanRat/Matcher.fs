@@ -4,18 +4,31 @@ open System
 open System.Collections.Generic
 open System.Linq
 
-type Dictionary<'k, 'v> with
-    member inline this.TryFind key =
+// Performance: Define an struct option here
+[<Struct>]
+// fsharplint:disable-next-line
+type internal 'v opt = 
+    | Some of 'v
+    | None
+    member inline this.Value =
+        match this with
+        | Some v -> v
+        | None -> failwith "internal error (Value is None)"
+
+type internal Dictionary<'k, 'v> with
+    member inline internal this.TryFind key =
         match this.TryGetValue key with
         | (true, v) -> Some v
         | (false, _) -> None
 
+[<Struct>]
 type ParseSuccess<'v> = { 
     Value: 'v 
     Index: int 
     Next: int 
 }
 
+[<Struct>]
 type ParseFailure = { Index: int }
 
 type IItem =
@@ -38,34 +51,35 @@ type ParseResult<'v> =
    
 type Key = obj
 
+[<Struct>]
 type Error = { 
     Message: string
     Index: int
 }
 
-type RuleTable = Dictionary<int, IItem option>
-type ExpansionTable = Dictionary<int, RuleTable>
+type internal RuleTable = Dictionary<int, IItem opt>
+type internal ExpansionTable = Dictionary<int, RuleTable>
 
-type MemoTable = Dictionary<Key, ExpansionTable>
+type internal MemoTable = Dictionary<Key, ExpansionTable>
 
-[<NoComparison>]
-type Expansion = {
+[<NoComparison; Struct>]
+type internal Expansion = {
     Key: Key
     Num : int 
 }
 
 [<NoComparison>]
-type LRRecord = {
+type internal LRRecord = {
     mutable Expansion: Expansion
     mutable LRDetected: bool
     mutable NextIndex: int
-    mutable Result: IItem option
+    mutable Result: IItem opt
     Involved: HashSet<Key>
     Name : string
 }
 
-type RecordTable = Dictionary<int, LRRecord>
-type LRTable = Dictionary<Key, RecordTable>
+type internal RecordTable = Dictionary<int, LRRecord>
+type internal LRTable = Dictionary<Key, RecordTable>
 
 type Stats = {
     // Number of actual production calls
@@ -79,8 +93,8 @@ type Stats = {
     member this.TrackMemo() = this.Memo <- this.Memo + 1
     member this.TrackMemoLR() = this.MemoLR <- this.MemoLR + 1
 
-[<NoComparison>]
-type ErrorRecord = {
+[<NoComparison; Struct>]
+type internal ErrorRecord = {
     Key: Object
     Expected: string
     CallStack: LRRecord list
@@ -95,7 +109,7 @@ type ParsingError = {
         this.Expected
 
 [<NoComparison>]
-type Memo = {
+type internal Memo = {
     Table: MemoTable
     Recursions: LRTable
     mutable CallStack: LRRecord list
@@ -125,13 +139,13 @@ type Memo = {
                     keys.Add(er.Key) |> ignore
         }
 
-type IParseContext =
+type internal IParseContext =
     abstract member Memo : Memo
     abstract member Index : int
 
 exception MatcherException of Error
 
-let rec memoCall (context: 'c :> IParseContext) (name: string) (production : 'c -> 'r :> IItem) : (IItem option) =
+let rec internal memoCall (context: 'c :> IParseContext) (name: string) (production : 'c -> 'r :> IItem) : (IItem opt) =
     let memo = context.Memo
     let index = context.Index
     let key = production :> Key
@@ -174,7 +188,7 @@ let rec memoCall (context: 'c :> IParseContext) (name: string) (production : 'c 
     startLRRecord memo expansion index record
     memo.CallStack <- record :: memo.CallStack
 
-    let rec resolveItem() : IItem option = 
+    let rec resolveItem() : IItem opt= 
 
         // printf "%d %d %s\n" context.index record.expansion.num name
         let pResult = production context :> IItem
@@ -183,7 +197,7 @@ let rec memoCall (context: 'c :> IParseContext) (name: string) (production : 'c 
         let result = if pResult.IsSuccess then (Some pResult) else None
         // do we need to keep trying the expansions?
         
-        if record.LRDetected && result.IsSome && result.Value.Next > record.NextIndex then
+        if record.LRDetected && result <> None && result.Value.Next > record.NextIndex then
             record.Expansion <- { expansion with Num = record.Expansion.Num + 1 }
             record.NextIndex <- result.Value.Next
             memoize memo record.Expansion index result
@@ -205,13 +219,13 @@ let rec memoCall (context: 'c :> IParseContext) (name: string) (production : 'c 
     //else
         //printf "%d %s: can't memoize, because of lr above\n" index name
 
-    if result.IsNone then
+    if result = None then
         addError memo index { Key = key; Expected = name; CallStack = memo.CallStack }
 
     result
 
 
-and tryGetMemo memo expansion index : (IItem option option) =
+and internal tryGetMemo memo expansion index : (IItem opt opt) =
     match memo.Table.TryFind expansion.Key with
     | None -> None
     | Some expansionDict ->
@@ -219,12 +233,12 @@ and tryGetMemo memo expansion index : (IItem option option) =
     | None -> None
     | Some ruleDict -> ruleDict.TryFind index
 
-and tryGetLRRecord memo expansion index =
+and internal tryGetLRRecord memo expansion index =
     match memo.Recursions.TryFind expansion.Key with
     | None -> None
     | Some recordDict -> recordDict.TryFind index
 
-and memoize memo expansion index (item : IItem option) =
+and internal memoize memo expansion index (item : IItem opt) =
     let expansionDict = 
         match memo.Table.TryFind expansion.Key with
         | Some expansionDict -> expansionDict
@@ -243,7 +257,7 @@ and memoize memo expansion index (item : IItem option) =
 
     ruleDict.[index] <- item
 
-and startLRRecord memo expansion index record =
+and internal startLRRecord memo expansion index record =
     let recordDict = 
         match memo.Recursions.TryFind expansion.Key with
         | Some recordDict -> recordDict
@@ -254,12 +268,12 @@ and startLRRecord memo expansion index record =
 
     recordDict.[index] <- record
 
-and forgetLRRecord memo expansion index =
+and internal forgetLRRecord memo expansion index =
     match memo.Recursions.TryFind expansion.Key with
     | Some recordDict -> recordDict.Remove index |> ignore
     | None -> ()
       
-and addError memo pos error =
+and internal addError memo pos error =
     if pos > memo.LastErrorPos then
         memo.LastErrorRecords.Clear()
 
