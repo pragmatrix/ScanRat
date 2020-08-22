@@ -1,0 +1,14 @@
+STORAGE: NONE
+RESTRICTION: || (== net45) (== netcoreapp3.1) (== netstandard2.0)
+NUGET
+  remote: https://api.nuget.org/v3/index.json
+    FSharp.Core (4.7.2)
+    FsUnit (4.0.1)
+      FSharp.Core (>= 4.3.4) - restriction: || (&& (== net45) (>= netstandard2.0)) (== netcoreapp3.1) (== netstandard2.0)
+      NETStandard.Library (>= 2.0.3) - restriction: || (&& (== net45) (>= netstandard2.0)) (== netcoreapp3.1) (== netstandard2.0)
+      NUnit (>= 3.12 < 4.0) - restriction: || (&& (== net45) (>= netstandard2.0)) (== netcoreapp3.1) (== netstandard2.0)
+    Microsoft.NETCore.Platforms (3.1.2) - restriction: || (&& (== net45) (>= netcoreapp2.0)) (&& (== net45) (>= netstandard2.0)) (== netcoreapp3.1) (== netstandard2.0)
+    NETStandard.Library (2.0.3) - restriction: || (&& (== net45) (>= netstandard2.0)) (== netcoreapp3.1) (== netstandard2.0)
+      Microsoft.NETCore.Platforms (>= 1.1)
+    NUnit (3.12)
+      NETStandard.Library (>= 2.0) - restriction: || (&& (== net45) (< net35) (>= netstandard2.0)) (== netcoreapp3.1) (== netstandard2.0)
