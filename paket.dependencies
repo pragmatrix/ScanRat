@@ -1,0 +1,8 @@
+source https://api.nuget.org/v3/index.json
+
+version: 5.249.2 
+storage: none
+
+nuget FSharp.Core 4.0.0.1 prerelease restriction: >= net45
+nuget FsUnit 1.4.1.0 prerelease restriction: >= net45
+nuget NUnit 2.6.4 prerelease

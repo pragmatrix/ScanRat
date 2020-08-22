@@ -7,3 +7,4 @@ obj/
 *.ncrunchproject
 *.ncrunchsolution
 /_NCrunch_ScanRat/
+/paket.lock
