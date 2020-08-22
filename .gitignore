@@ -3,6 +3,8 @@ obj/
 /.vs/
 /packages/
 /.paket/
+/.fake
+/.ionide
 *.user
 *.nupkg
 *.ncrunchproject
